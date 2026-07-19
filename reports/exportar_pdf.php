@@ -1,23 +1,34 @@
 <?php
-require_once('conexion.php');
+require_once(__DIR__ . '/../config/conexion.php');
 session_start();
+include(__DIR__ . '/../config/csrf.php');
+if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+    header("Location: ../menu.php?error=Token CSRF inválido");
+    exit();
+}
 
 if (!isset($_SESSION['usuario'])) {
-    header("Location: index.php");
+    header("Location: ../index.php");
     exit();
 }
 
 // Incluir librería FPDF 
-require('fpdf/fpdf.php');
+require(__DIR__ . '/../fpdf/fpdf.php');
 
-$tipo = $_POST['tipo'];
+$tipo = isset($_POST['tipo']) ? $_POST['tipo'] : '';
+$tipo_permitidos = ['productos', 'ventas', 'compras'];
+
+if (!in_array($tipo, $tipo_permitidos)) {
+    header("Location: ../menu.php");
+    exit();
+}
 
 class PDF extends FPDF {
     function Header() {
         $this->SetFont('Arial', 'B', 16);
-        $this->Cell(0, 10, utf8_decode('SGI sistema de gestión Inventarios'), 0, 1, 'C');
+        $this->Cell(0, 10, utf8_decode('SGI Sistema de Gestión de Inventarios'), 0, 1, 'C');
         $this->SetFont('Arial', '', 10);
-        $this->Cell(0, 5, 'Fecha: ' . date(format: 'd/m/Y H:i'), 0, 1, 'C');
+        $this->Cell(0, 5, 'Fecha: ' . date('d/m/Y H:i'), 0, 1, 'C');
         $this->Ln(5);
     }
     
@@ -73,10 +84,12 @@ if ($tipo == 'productos') {
     // Datos
     $pdf->SetFont('Arial', '', 10);
     $total_productos = 0;
+    $stock_total = 0;
     $valor_inventario = 0;
     
     while ($row = mysqli_fetch_assoc($result)) {
         $total_productos++;
+        $stock_total += $row['stock'];
         $valor_inventario += $row['stock'] * $row['precio'];
         
         $pdf->Cell(15, 6, $row['ID_producto'], 1, 0, 'C');
@@ -89,7 +102,7 @@ if ($tipo == 'productos') {
     // Totales
     $pdf->Ln(3);
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(80, 6, 'Total Productos: ' . $total_productos, 0, 0, 'L');
+    $pdf->Cell(80, 6, 'Total Productos: ' . $total_productos . '  |  Stock Total: ' . $stock_total, 0, 0, 'L');
     $pdf->Cell(0, 6, 'Valor Inventario: $' . number_format($valor_inventario, 0, ',', '.'), 0, 1, 'R');
 }
 
@@ -103,9 +116,14 @@ elseif ($tipo == 'ventas') {
     $fecha_fin = isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : '';
     $estado = isset($_POST['estado']) ? $_POST['estado'] : '';
     
-    $sql = "SELECT ov.*, c.nombre, c.apellido 
-            FROM orden_venta ov 
-            LEFT JOIN cliente c ON ov.ID_cliente = c.ID_cliente 
+    $sql = "SELECT ov.ID_orden_venta, ov.fecha, ov.estado,
+                   c.nombre, c.apellido,
+                   dov.cantidad, dov.precio_unitario,
+                   p.nombre AS nombre_producto
+            FROM orden_venta ov
+            JOIN detalle_orden_venta dov ON ov.ID_orden_venta = dov.ID_orden_venta
+            JOIN producto p ON dov.ID_producto = p.ID_producto
+            LEFT JOIN cliente c ON ov.ID_cliente = c.ID_cliente
             WHERE 1=1";
     
     if (!empty($fecha_inicio)) {
@@ -120,7 +138,7 @@ elseif ($tipo == 'ventas') {
         $sql .= " AND ov.estado = '" . mysqli_real_escape_string($conn, $estado) . "'";
     }
     
-    $sql .= " ORDER BY ov.fecha DESC";
+    $sql .= " ORDER BY ov.ID_orden_venta DESC";
     $result = mysqli_query($conn, $sql);
     
     // Filtros aplicados
@@ -134,34 +152,39 @@ elseif ($tipo == 'ventas') {
     }
     
     // Encabezados
-    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->SetFont('Arial', 'B', 8);
     $pdf->SetFillColor(200, 255, 200);
-    $pdf->Cell(15, 7, 'ID', 1, 0, 'C', true);
-    $pdf->Cell(25, 7, 'Fecha', 1, 0, 'C', true);
-    $pdf->Cell(60, 7, 'Cliente', 1, 0, 'C', true);
-    $pdf->Cell(30, 7, 'Estado', 1, 0, 'C', true);
-    $pdf->Cell(35, 7, 'Total', 1, 1, 'C', true);
+    $pdf->Cell(12, 7, 'ID', 1, 0, 'C', true);
+    $pdf->Cell(40, 7, 'Producto', 1, 0, 'C', true);
+    $pdf->Cell(22, 7, 'Cantidad', 1, 0, 'C', true);
+    $pdf->Cell(22, 7, 'P. Unit.', 1, 0, 'C', true);
+    $pdf->Cell(25, 7, 'Subtotal', 1, 0, 'C', true);
+    $pdf->Cell(25, 7, 'Estado', 1, 0, 'C', true);
+    $pdf->Cell(24, 7, 'Fecha', 1, 1, 'C', true);
     
     // Datos
     $pdf->SetFont('Arial', '', 8);
-    $total_ventas = 0;
+    $total_cantidad = 0;
     $total_monto = 0;
     
     while ($row = mysqli_fetch_assoc($result)) {
-        $total_ventas++;
-        $total_monto += $row['total'];
+        $subtotal = $row['cantidad'] * $row['precio_unitario'];
+        $total_cantidad += $row['cantidad'];
+        $total_monto += $subtotal;
         
-        $pdf->Cell(15, 6, $row['ID_orden_venta'], 1, 0, 'C');
-        $pdf->Cell(25, 6, date('d/m/Y', strtotime($row['fecha'])), 1, 0, 'C');
-        $pdf->Cell(60, 6, utf8_decode($row['nombre'] . ' ' . $row['apellido']), 1, 0, 'L');
-        $pdf->Cell(30, 6, utf8_decode($row['estado']), 1, 0, 'C');
-        $pdf->Cell(35, 6, '$' . number_format($row['total'], 0, ',', '.'), 1, 1, 'R');
+        $pdf->Cell(12, 6, $row['ID_orden_venta'], 1, 0, 'C');
+        $pdf->Cell(40, 6, utf8_decode(substr($row['nombre_producto'], 0, 22)), 1, 0, 'L');
+        $pdf->Cell(22, 6, $row['cantidad'], 1, 0, 'C');
+        $pdf->Cell(22, 6, '$' . number_format($row['precio_unitario'], 0, ',', '.'), 1, 0, 'R');
+        $pdf->Cell(25, 6, '$' . number_format($subtotal, 0, ',', '.'), 1, 0, 'R');
+        $pdf->Cell(25, 6, utf8_decode($row['estado']), 1, 0, 'C');
+        $pdf->Cell(24, 6, date('d/m/Y', strtotime($row['fecha'])), 1, 1, 'C');
     }
     
     // Totales
     $pdf->Ln(3);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Cell(100, 6, 'Total Ventas: ' . $total_ventas, 0, 0, 'L');
+    $pdf->Cell(100, 6, 'Cantidad Total: ' . $total_cantidad, 0, 0, 'L');
     $pdf->Cell(0, 6, 'Total Monto: $' . number_format($total_monto, 0, ',', '.'), 0, 1, 'R');
 }
 
@@ -175,9 +198,14 @@ elseif ($tipo == 'compras') {
     $fecha_fin = isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : '';
     $estado = isset($_POST['estado']) ? $_POST['estado'] : '';
     
-    $sql = "SELECT oc.*, p.nombre_proveedor 
-            FROM orden_compra oc 
-            LEFT JOIN proveedor p ON oc.ID_proveedor = p.ID_proveedor 
+    $sql = "SELECT oc.ID_orden_compra, oc.fecha, oc.estado,
+                   prov.nombre_proveedor,
+                   doc.cantidad, doc.precio_unitario_compra,
+                   p.nombre AS nombre_producto
+            FROM orden_compra oc
+            JOIN detalle_orden_compra doc ON oc.ID_orden_compra = doc.ID_orden_compra
+            JOIN producto p ON doc.ID_producto = p.ID_producto
+            LEFT JOIN proveedor prov ON oc.ID_proveedor = prov.ID_proveedor
             WHERE 1=1";
     
     if (!empty($fecha_inicio)) {
@@ -192,7 +220,7 @@ elseif ($tipo == 'compras') {
         $sql .= " AND oc.estado = '" . mysqli_real_escape_string($conn, $estado) . "'";
     }
     
-    $sql .= " ORDER BY oc.fecha DESC";
+    $sql .= " ORDER BY oc.ID_orden_compra DESC";
     $result = mysqli_query($conn, $sql);
     
     // Filtros aplicados
@@ -206,34 +234,39 @@ elseif ($tipo == 'compras') {
     }
     
     // Encabezados
-    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->SetFont('Arial', 'B', 8);
     $pdf->SetFillColor(255, 235, 200);
-    $pdf->Cell(15, 7, 'ID', 1, 0, 'C', true);
-    $pdf->Cell(25, 7, 'Fecha', 1, 0, 'C', true);
-    $pdf->Cell(60, 7, 'Proveedor', 1, 0, 'C', true);
-    $pdf->Cell(30, 7, 'Estado', 1, 0, 'C', true);
-    $pdf->Cell(35, 7, 'Total', 1, 1, 'C', true);
+    $pdf->Cell(12, 7, 'ID', 1, 0, 'C', true);
+    $pdf->Cell(40, 7, 'Producto', 1, 0, 'C', true);
+    $pdf->Cell(22, 7, 'Cantidad', 1, 0, 'C', true);
+    $pdf->Cell(22, 7, 'P. Unit.', 1, 0, 'C', true);
+    $pdf->Cell(25, 7, 'Subtotal', 1, 0, 'C', true);
+    $pdf->Cell(25, 7, 'Estado', 1, 0, 'C', true);
+    $pdf->Cell(24, 7, 'Fecha', 1, 1, 'C', true);
     
     // Datos
     $pdf->SetFont('Arial', '', 8);
-    $total_compras = 0;
+    $total_cantidad = 0;
     $total_monto = 0;
     
     while ($row = mysqli_fetch_assoc($result)) {
-        $total_compras++;
-        $total_monto += $row['total'];
+        $subtotal = $row['cantidad'] * $row['precio_unitario_compra'];
+        $total_cantidad += $row['cantidad'];
+        $total_monto += $subtotal;
         
-        $pdf->Cell(15, 6, $row['ID_orden_compra'], 1, 0, 'C');
-        $pdf->Cell(25, 6, date('d/m/Y', strtotime($row['fecha'])), 1, 0, 'C');
-        $pdf->Cell(60, 6, utf8_decode($row['nombre_proveedor']), 1, 0, 'L');
-        $pdf->Cell(30, 6, utf8_decode($row['estado']), 1, 0, 'C');
-        $pdf->Cell(35, 6, '$' . number_format($row['total'], 0, ',', '.'), 1, 1, 'R');
+        $pdf->Cell(12, 6, $row['ID_orden_compra'], 1, 0, 'C');
+        $pdf->Cell(40, 6, utf8_decode(substr($row['nombre_producto'], 0, 22)), 1, 0, 'L');
+        $pdf->Cell(22, 6, $row['cantidad'], 1, 0, 'C');
+        $pdf->Cell(22, 6, '$' . number_format($row['precio_unitario_compra'], 0, ',', '.'), 1, 0, 'R');
+        $pdf->Cell(25, 6, '$' . number_format($subtotal, 0, ',', '.'), 1, 0, 'R');
+        $pdf->Cell(25, 6, utf8_decode($row['estado']), 1, 0, 'C');
+        $pdf->Cell(24, 6, date('d/m/Y', strtotime($row['fecha'])), 1, 1, 'C');
     }
     
     // Totales
     $pdf->Ln(3);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Cell(100, 6, 'Total Compras: ' . $total_compras, 0, 0, 'L');
+    $pdf->Cell(100, 6, 'Cantidad Total: ' . $total_cantidad, 0, 0, 'L');
     $pdf->Cell(0, 6, 'Total Monto: $' . number_format($total_monto, 0, ',', '.'), 0, 1, 'R');
 }
 

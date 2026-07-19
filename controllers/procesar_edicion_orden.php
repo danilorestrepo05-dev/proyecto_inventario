@@ -1,14 +1,20 @@
 <?php
-include("../config/conexion.php");
 session_start();
+include("../config/conexion.php");
+include("../config/csrf.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='../views/orden_compra.php';</script>";
     exit();
 }
 
-$id_orden = $_POST['id_orden'];
-$proveedor = $_POST['proveedor'];
+if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+    header("Location: ../views/orden_compra.php?error=Token CSRF inválido");
+    exit();
+}
+
+$id_orden = intval($_POST['id_orden']);
+$proveedor = intval($_POST['proveedor']);
 $estado = $_POST['estado'];
 $fecha = $_POST['fecha'];
 $productos = $_POST['productos'];
@@ -17,21 +23,28 @@ $productos = $_POST['productos'];
 if (empty($productos) || !is_array($productos)) {
     mysqli_close($conn);
     echo "<script>
-            alert('❌ Error: Debe tener al menos un producto');
+            alert('Error: Debe tener al menos un producto');
             window.history.back();
           </script>";
     exit();
 }
 
 // Obtener información previa de la orden
-$sql_anterior = "SELECT estado FROM orden_compra WHERE ID_orden_compra = '$id_orden'";
-$result_anterior = $conn->query($sql_anterior);
-$orden_anterior = $result_anterior->fetch_assoc();
+$sql_anterior = "SELECT estado FROM orden_compra WHERE ID_orden_compra = ?";
+$stmt_ant = $conn->prepare($sql_anterior);
+$stmt_ant->bind_param("i", $id_orden);
+$stmt_ant->execute();
+$orden_anterior = $stmt_ant->get_result()->fetch_assoc();
+$stmt_ant->close();
 $estado_anterior = $orden_anterior['estado'];
 
 // Obtener productos anteriores
-$sql_detalles_ant = "SELECT ID_producto, cantidad FROM detalle_orden_compra WHERE ID_orden_compra = '$id_orden'";
-$result_detalles_ant = $conn->query($sql_detalles_ant);
+$sql_detalles_ant = "SELECT ID_producto, cantidad FROM detalle_orden_compra WHERE ID_orden_compra = ?";
+$stmt_det_ant = $conn->prepare($sql_detalles_ant);
+$stmt_det_ant->bind_param("i", $id_orden);
+$stmt_det_ant->execute();
+$result_detalles_ant = $stmt_det_ant->get_result();
+$stmt_det_ant->close();
 $productos_anteriores = [];
 while ($det = $result_detalles_ant->fetch_assoc()) {
     $productos_anteriores[$det['ID_producto']] = $det['cantidad'];
@@ -45,13 +58,12 @@ foreach ($productos as $prod) {
     $id_producto = intval($prod['id']);
     $cantidad = intval($prod['cantidad']);
     $precio_unitario = floatval($prod['precio']);
-    $id_detalle = !empty($prod['id_detalle']) ? intval($prod['id_detalle']) : 0;
     
     // Validaciones
     if ($cantidad <= 0) {
         mysqli_close($conn);
         echo "<script>
-                alert('❌ Error: La cantidad debe ser mayor a 0');
+                alert('Error: La cantidad debe ser mayor a 0');
                 window.history.back();
               </script>";
         exit();
@@ -60,7 +72,7 @@ foreach ($productos as $prod) {
     if ($precio_unitario < 0) {
         mysqli_close($conn);
         echo "<script>
-                alert('❌ Error: El precio no puede ser negativo');
+                alert('Error: El precio no puede ser negativo');
                 window.history.back();
               </script>";
         exit();
@@ -70,7 +82,6 @@ foreach ($productos as $prod) {
     $total_general += $subtotal;
     
     $productos_validos[] = [
-        'id_detalle' => $id_detalle,
         'id_producto' => $id_producto,
         'cantidad' => $cantidad,
         'precio' => $precio_unitario,
@@ -84,54 +95,66 @@ $conn->begin_transaction();
 try {
     // 1. Revertir stock si el estado anterior era "Aprobado"
     if ($estado_anterior === 'Aprobado') {
+        $sql_revertir = "UPDATE producto SET stock = stock - ? WHERE ID_producto = ?";
+        $stmt_rev = $conn->prepare($sql_revertir);
         foreach ($productos_anteriores as $id_prod => $cant) {
-            $sql_revertir = "UPDATE producto SET stock = stock - $cant WHERE ID_producto = '$id_prod'";
-            if (!$conn->query($sql_revertir)) {
+            $stmt_rev->bind_param("ii", $cant, $id_prod);
+            if (!$stmt_rev->execute()) {
+                $stmt_rev->close();
                 throw new Exception("Error al revertir stock: " . $conn->error);
             }
         }
+        $stmt_rev->close();
     }
     
     // 2. Actualizar orden_compra
-    $sql_orden = "UPDATE orden_compra 
-                  SET ID_proveedor = '$proveedor', 
-                      estado = '$estado', 
-                      total = '$total_general', 
-                      fecha = '$fecha'
-                  WHERE ID_orden_compra = '$id_orden'";
+    $sql_orden = "UPDATE orden_compra SET ID_proveedor = ?, estado = ?, total = ?, fecha = ? WHERE ID_orden_compra = ?";
+    $stmt_ord = $conn->prepare($sql_orden);
+    $stmt_ord->bind_param("sisdi", $proveedor, $estado, $total_general, $fecha, $id_orden);
     
-    if (!$conn->query($sql_orden)) {
+    if (!$stmt_ord->execute()) {
+        $stmt_ord->close();
         throw new Exception("Error al actualizar orden: " . $conn->error);
     }
+    $stmt_ord->close();
     
     // 3. Eliminar detalles anteriores
-    $sql_delete = "DELETE FROM detalle_orden_compra WHERE ID_orden_compra = '$id_orden'";
-    if (!$conn->query($sql_delete)) {
+    $sql_delete = "DELETE FROM detalle_orden_compra WHERE ID_orden_compra = ?";
+    $stmt_del = $conn->prepare($sql_delete);
+    $stmt_del->bind_param("i", $id_orden);
+    if (!$stmt_del->execute()) {
+        $stmt_del->close();
         throw new Exception("Error al eliminar detalles: " . $conn->error);
     }
+    $stmt_del->close();
     
     // 4. Insertar nuevos detalles
+    $sql_insert = "INSERT INTO detalle_orden_compra (ID_orden_compra, ID_producto, cantidad, precio_unitario_compra, subtotal) VALUES (?, ?, ?, ?, ?)";
+    $stmt_ins = $conn->prepare($sql_insert);
+    
+    $sql_stock_add = "UPDATE producto SET stock = stock + ? WHERE ID_producto = ?";
+    $stmt_stock = $conn->prepare($sql_stock_add);
+    
     foreach ($productos_validos as $prod) {
-        $sql_insert = "INSERT INTO detalle_orden_compra 
-                       (ID_orden_compra, ID_producto, cantidad, precio_unitario_compra, subtotal)
-                       VALUES ('$id_orden', '{$prod['id_producto']}', '{$prod['cantidad']}', 
-                               '{$prod['precio']}', '{$prod['subtotal']}')";
-        
-        if (!$conn->query($sql_insert)) {
+        $stmt_ins->bind_param("iiidd", $id_orden, $prod['id_producto'], $prod['cantidad'], $prod['precio'], $prod['subtotal']);
+        if (!$stmt_ins->execute()) {
+            $stmt_ins->close();
+            $stmt_stock->close();
             throw new Exception("Error al insertar detalle: " . $conn->error);
         }
         
         // 5. Actualizar stock si el nuevo estado es "Aprobado"
         if ($estado === 'Aprobado') {
-            $sql_stock = "UPDATE producto 
-                         SET stock = stock + {$prod['cantidad']} 
-                         WHERE ID_producto = '{$prod['id_producto']}'";
-            
-            if (!$conn->query($sql_stock)) {
+            $stmt_stock->bind_param("ii", $prod['cantidad'], $prod['id_producto']);
+            if (!$stmt_stock->execute()) {
+                $stmt_ins->close();
+                $stmt_stock->close();
                 throw new Exception("Error al actualizar stock: " . $conn->error);
             }
         }
     }
+    $stmt_ins->close();
+    $stmt_stock->close();
     
     // Commit de la transacción
     $conn->commit();

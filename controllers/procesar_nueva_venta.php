@@ -1,13 +1,19 @@
 <?php
-include("../config/conexion.php");
 session_start();
+include("../config/conexion.php");
+include("../config/csrf.php");
 
-if (!isset($_SESSION['usuario'])) {
+if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
     exit();
 }
 
-$cliente = $_POST['cliente'];
+if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+    header("Location: ../views/ventas.php?error=Token CSRF inválido");
+    exit();
+}
+
+$cliente = intval($_POST['cliente']);
 $estado = $_POST['estado'];
 $fecha = $_POST['fecha'];
 $productos = $_POST['productos'];
@@ -16,7 +22,7 @@ $productos = $_POST['productos'];
 if (empty($productos) || !is_array($productos)) {
     mysqli_close($conn);
     echo "<script>
-            alert('❌ Error: Debe agregar al menos un producto');
+            alert('Error: Debe agregar al menos un producto');
             window.history.back();
           </script>";
     exit();
@@ -35,7 +41,7 @@ foreach ($productos as $prod) {
     if ($cantidad <= 0) {
         mysqli_close($conn);
         echo "<script>
-                alert('❌ Error: La cantidad debe ser mayor a 0');
+                alert('Error: La cantidad debe ser mayor a 0');
                 window.history.back();
               </script>";
         exit();
@@ -44,7 +50,7 @@ foreach ($productos as $prod) {
     if ($precio_unitario < 0) {
         mysqli_close($conn);
         echo "<script>
-                alert('❌ Error: El precio no puede ser negativo');
+                alert('Error: El precio no puede ser negativo');
                 window.history.back();
               </script>";
         exit();
@@ -52,14 +58,18 @@ foreach ($productos as $prod) {
     
     // Verificar stock disponible (solo si estado es "completada")
     if ($estado === 'completada') {
-        $sql_stock = "SELECT stock, nombre FROM producto WHERE ID_producto = '$id_producto'";
-        $result_stock = $conn->query($sql_stock);
+        $sql_stock = "SELECT stock, nombre FROM producto WHERE ID_producto = ?";
+        $stmt_stock = $conn->prepare($sql_stock);
+        $stmt_stock->bind_param("i", $id_producto);
+        $stmt_stock->execute();
+        $result_stock = $stmt_stock->get_result();
         $producto_info = $result_stock->fetch_assoc();
+        $stmt_stock->close();
         
         if ($producto_info['stock'] < $cantidad) {
             mysqli_close($conn);
             echo "<script>
-                    alert('❌ Stock insuficiente\\n\\nProducto: {$producto_info['nombre']}\\nStock disponible: {$producto_info['stock']}\\nCantidad solicitada: $cantidad');
+                    alert('Stock insuficiente\\n\\nProducto: {$producto_info['nombre']}\\nStock disponible: {$producto_info['stock']}\\nCantidad solicitada: $cantidad');
                     window.history.back();
                   </script>";
             exit();
@@ -82,36 +92,46 @@ $conn->begin_transaction();
 
 try {
     // 1. Insertar en orden_venta
-    $sql1 = "INSERT INTO orden_venta (ID_cliente, estado, total, fecha)
-             VALUES ('$cliente', '$estado', '$total_general', '$fecha')";
+    $sql1 = "INSERT INTO orden_venta (ID_cliente, estado, total, fecha) VALUES (?, ?, ?, ?)";
+    $stmt1 = $conn->prepare($sql1);
+    $stmt1->bind_param("isds", $cliente, $estado, $total_general, $fecha);
     
-    if (!$conn->query($sql1)) {
+    if (!$stmt1->execute()) {
+        $stmt1->close();
         throw new Exception("Error al insertar orden_venta: " . $conn->error);
     }
+    $stmt1->close();
     
     $id_orden = $conn->insert_id;
     
     // 2. Insertar cada producto en detalle_orden_venta
+    $sql2 = "INSERT INTO detalle_orden_venta (ID_orden_venta, ID_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
+    $stmt2 = $conn->prepare($sql2);
+    
+    $sql_stock_update = "UPDATE producto SET stock = stock - ? WHERE ID_producto = ?";
+    $stmt_stock = $conn->prepare($sql_stock_update);
+    
     foreach ($productos_validos as $prod) {
-        $sql2 = "INSERT INTO detalle_orden_venta 
-                 (ID_orden_venta, ID_producto, cantidad, precio_unitario)
-                 VALUES ('$id_orden', '{$prod['id']}', '{$prod['cantidad']}', '{$prod['precio']}')";
+        $stmt2->bind_param("iiid", $id_orden, $prod['id'], $prod['cantidad'], $prod['precio']);
         
-        if (!$conn->query($sql2)) {
+        if (!$stmt2->execute()) {
+            $stmt2->close();
+            $stmt_stock->close();
             throw new Exception("Error al insertar detalle: " . $conn->error);
         }
         
         // 3. Reducir stock si estado es "completada"
         if ($estado === 'completada') {
-            $sql_stock = "UPDATE producto 
-                         SET stock = stock - {$prod['cantidad']} 
-                         WHERE ID_producto = '{$prod['id']}'";
-            
-            if (!$conn->query($sql_stock)) {
+            $stmt_stock->bind_param("ii", $prod['cantidad'], $prod['id']);
+            if (!$stmt_stock->execute()) {
+                $stmt2->close();
+                $stmt_stock->close();
                 throw new Exception("Error al actualizar stock: " . $conn->error);
             }
         }
     }
+    $stmt2->close();
+    $stmt_stock->close();
     
     // Commit de la transacción
     $conn->commit();

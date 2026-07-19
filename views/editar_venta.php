@@ -1,12 +1,14 @@
 <?php 
 include("../config/conexion.php");
-$codigo = $_REQUEST['id'];
-
 session_start();
+include('../config/csrf.php');
+
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='ventas.php';</script>";
     exit();
 }
+
+$codigo = intval($_REQUEST['id']);
 
 // Consulta clientes
 $resultado_cli = $conn->query("SELECT * FROM cliente ORDER BY nombre");
@@ -15,16 +17,23 @@ $resultado_cli = $conn->query("SELECT * FROM cliente ORDER BY nombre");
 $resultado_prod = $conn->query("SELECT * FROM producto ORDER BY nombre");
 
 // Consulta venta principal
-$sql_venta = "SELECT * FROM orden_venta WHERE ID_orden_venta = '$codigo'";
-$resultado_venta = $conn->query($sql_venta);
-$venta = $resultado_venta->fetch_assoc();
+$sql_venta = "SELECT * FROM orden_venta WHERE ID_orden_venta = ?";
+$stmt_venta = $conn->prepare($sql_venta);
+$stmt_venta->bind_param("i", $codigo);
+$stmt_venta->execute();
+$venta = $stmt_venta->get_result()->fetch_assoc();
+$stmt_venta->close();
 
 // Consulta productos de la venta
 $sql_detalles = "SELECT dov.*, p.nombre as nombre_producto
                  FROM detalle_orden_venta dov
                  JOIN producto p ON dov.ID_producto = p.ID_producto
-                 WHERE dov.ID_orden_venta = '$codigo'";
-$resultado_detalles = $conn->query($sql_detalles);
+                 WHERE dov.ID_orden_venta = ?";
+$stmt_det = $conn->prepare($sql_detalles);
+$stmt_det->bind_param("i", $codigo);
+$stmt_det->execute();
+$resultado_detalles = $stmt_det->get_result();
+$stmt_det->close();
 
 // RESTRICCIÓN: Solo permitir editar ventas pendientes
 if ($venta['estado'] !== 'pendiente') {
@@ -55,207 +64,83 @@ while ($detalle = $resultado_detalles->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Venta</title>
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
-    <style>
-       /* Estilos específicos para productos múltiples */
-        .productos-container {
-            margin: 10px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .productos-container h2 {
-            margin: 0 0 20px 0;
-            color: #333;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .producto-item {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            border: 2px solid #2bb8ca;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .producto-item h3 {
-            margin: 0 0 15px 0;
-            color: #2bb8ca;
-            font-size: 16px;
-            font-weight: 600;
-            border-bottom: 2px solid #2bb8ca;
-            padding-bottom: 8px;
-        }
-        
-        .producto-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 3px;
-            align-items: end;
-        }
-        
-        .producto-row > div {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .producto-row label {
-            display: block;
-            margin-bottom: 3px;
-            font-weight: 400;
-            color: #495057;
-            font-size: 14px;
-        }
-        
-        .producto-row select,
-        .producto-row input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        
-        .producto-row select:focus,
-        .producto-row input[type="number"]:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-        }
-        
-        .btn-eliminar {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.3s;
-            width: 100%;
-        }
-        
-        .btn-eliminar:hover {
-            background: #c82333;
-        }
-        
-        .btn-agregar {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            margin-top: 15px;
-            transition: background 0.3s;
-            display: inline-block;
-        }
-        
-        .btn-agregar:hover {
-            background: #218838;
-        }
-        
-        .subtotal-display {
-            text-align: right;
-            font-weight: bold;
-            color: #2bb8ca;
-            margin-top: 10px;
-            font-size: 16px;
-            padding: 10px;
-            background: #e7f3ff;
-            border-radius: 4px;
-        }
-        
-        .total-general {
-            background: white;
-            color: rgb(0, 0, 0);
-            border: 2px solid #2bb8ca;
-            padding: 10px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        @media (max-width: 768px) {
-            .producto-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .btn-eliminar {
-                margin-top: 10px;
-            }
-        }
-    </style>
+    <title>Editar Venta</title>
 </head>
-<body class="registro_usuario">
-<div class="registrarse">
-    <h1>Modificar información de la venta</h1>
+<body class="custom-body">
+<?php $nav_base = '..'; include('includes/navbar.php'); ?>
 
-    <form action="../controllers/procesar_edicion_venta.php" method="POST" class="formulario_registro" id="formOrden">
-        
-        <input type="hidden" name="id_orden" value="<?php echo $venta['ID_orden_venta']; ?>">
-        
-        <div class="datos_registro">
-            <label for="id_orden">ID Venta</label>
-            <input type="text" id="id_orden" value="<?php echo $venta['ID_orden_venta']; ?>" readonly>
+<div class="container py-4">
+    <div class="form-card card" style="max-width: 800px;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Editar Venta</h5>
+            <a href="ventas.php" class="btn btn-sm btn-outline-light rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
         </div>
+        <div class="card-body p-4">
+            <form action="../controllers/procesar_edicion_venta.php" method="POST" id="formOrden">
+                <?php echo csrf_field(); ?>
+                
+                <input type="hidden" name="id_orden" value="<?php echo htmlspecialchars($venta['ID_orden_venta']); ?>">
+                
+                <div class="mb-3">
+                    <label for="id_orden" class="form-label">ID Venta</label>
+                    <input type="text" id="id_orden" class="form-control" value="<?php echo htmlspecialchars($venta['ID_orden_venta']); ?>" readonly>
+                </div>
 
-        <div class="datos_registro">
-            <label for="cliente">Cliente</label>
-            <select name="cliente" id="cliente" required>
-                <option value="" disabled>[Seleccione un cliente]</option>
-                <?php
-                while ($fila_cli = $resultado_cli->fetch_assoc()) {
-                    $selected = ($fila_cli['ID_cliente'] == $venta['ID_cliente']) ? "selected" : "";
-                    echo "<option value='{$fila_cli['ID_cliente']}' $selected>{$fila_cli['nombre']} {$fila_cli['apellido']}</option>";
-                }
-                ?>
-            </select>
+                <div class="mb-3">
+                    <label for="cliente" class="form-label">Cliente</label>
+                    <select name="cliente" id="cliente" class="form-select" required>
+                        <option value="0">Cliente general (sin registro)</option>
+                        <?php
+                        while ($fila_cli = $resultado_cli->fetch_assoc()) {
+                            $selected = ($fila_cli['ID_cliente'] == $venta['ID_cliente']) ? "selected" : "";
+                            echo "<option value='" . htmlspecialchars($fila_cli['ID_cliente']) . "' $selected>" . htmlspecialchars($fila_cli['nombre'] . ' ' . $fila_cli['apellido']) . "</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select name="estado" id="estado" class="form-select" required>
+                        <option value="pendiente" <?= $venta['estado'] == 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
+                        <option value="completada" <?= $venta['estado'] == 'completada' ? 'selected' : '' ?>>Completada</option>
+                        <option value="cancelada" <?= $venta['estado'] == 'cancelada' ? 'selected' : '' ?>>Cancelada</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="fecha" class="form-label">Fecha</label>
+                    <input type="date" name="fecha" id="fecha" class="form-control" value="<?php echo htmlspecialchars($venta['fecha']); ?>" required>
+                </div>
+
+                <!-- Contenedor de productos -->
+                <div class="productos-container">
+                    <h2>Productos de la venta</h2>
+                    <div id="productosLista"></div>
+                    <button type="button" class="btn-agregar" onclick="agregarProducto()">+ Agregar Producto</button>
+                </div>
+
+                <!-- Total General -->
+                <div class="total-general">
+                    Total de la Venta: $<span id="totalGeneral">0</span>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check-circle me-1"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div class="datos_registro">
-            <label for="estado">Estado</label>
-            <select name="estado" id="estado" required>
-                <option value="pendiente" <?= $venta['estado'] == 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
-                <option value="completada" <?= $venta['estado'] == 'completada' ? 'selected' : '' ?>>Completada</option>
-                <option value="cancelada" <?= $venta['estado'] == 'cancelada' ? 'selected' : '' ?>>Cancelada</option>
-            </select>
-        </div>
-
-        <div class="datos_registro">
-            <label for="fecha">Fecha</label>
-            <input type="date" name="fecha" id="fecha" value="<?php echo $venta['fecha']; ?>" required>
-        </div>
-
-        <!-- Contenedor de productos -->
-        <div class="productos-container">
-            <h2>Productos de la venta</h2>
-            <div id="productosLista"></div>
-            <button type="button" class="btn-agregar" onclick="agregarProducto()">+ Agregar Producto</button>
-        </div>
-
-        <!-- Total General -->
-        <div class="total-general">
-            Total de la Venta: $<span id="totalGeneral">0</span>
-        </div>
-
-        <button type="submit" class="boton_registro">Guardar cambios</button>
-    </form>
+    </div>
 </div>
 
+<script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script>
     let contadorProductos = 0;
     const productosDisponibles = <?php 

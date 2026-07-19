@@ -1,8 +1,8 @@
 <?php
-include("../config/conexion.php");
 session_start();
+include("../config/conexion.php");
+include("../config/csrf.php");
 
-// Solo el admin puede cambiar claves
 if ($_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='usuarios.php';</script>";
     exit();
@@ -13,134 +13,116 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-$id_usuario = $_GET['id']; // ID del usuario a modificar
-
-// Si el formulario fue enviado
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nueva_clave = $_POST['nueva_clave'];
-
-    $sql = "UPDATE usuario SET clave='$nueva_clave' WHERE ID_usuario='$id_usuario'";
-    if ($conn->query($sql)) {
-        header("Location: usuarios.php?mensaje=Clave actualizada correctamente");
-        exit();
-    } else {
-        $error = "Error al actualizar la clave: " . $conn->error;
-    }
-}
+$id_usuario = intval($_GET['id']);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cambiar clave</title>
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
-    
-<style>
-        body {
-            background-color: #a0e7f0;
-        }
-        .card {
-            max-width: 440px;
-            width: 100%;
-        }
-        .btn {
-            padding: 8px;
-            margin: 2px;
-        }
-        @media (max-width: 768px) {
-            .card {
-                margin: 0 10px; /* margen lateral pequeño en móviles */
-            }
-        }
-    </style>
+    <title>Cambiar Clave</title>
 </head>
-<body class="d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow p-4">
-        <h4 class="text-center mb-4">Cambiar clave del usuario: <?php echo $id_usuario; ?></h4>
+<body class="custom-body">
+<?php $nav_base = '..'; include('includes/navbar.php'); ?>
 
-        <?php if (!empty($error)) echo "<div class='alert alert-danger text-center'>$error</div>"; ?>
-
-        <!-- Formulario para cambiar contraseña -->
-<form action="../controllers/procesar_cambiar_clave.php" method="POST" id="formCambiarClave">
-    <!-- ID del usuario (oculto) -->
-    <input type="hidden" name="ID_usuario" value="<?php echo $id_usuario; ?>">
-    
-    <!-- Nueva contraseña -->
-    <div class="datos_registro">
-        <label for="nueva_clave">Nueva Contraseña</label>
-        <input type="password" 
-               name="nueva_clave" 
-               id="nueva_clave" 
-               placeholder="Mínimo 8 caracteres (letras y números)"
-               minlength="8"
-               pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$"
-               title="Debe contener al menos 8 caracteres, incluyendo letras y números"
-               required>
-        <small style="color: #666; font-size: 12px;">
-            Mínimo 8 caracteres, debe incluir letras y números
-        </small>
+<div class="container py-4">
+    <div class="form-card card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-key me-2"></i>Cambiar Clave</h5>
+            <a href="usuarios.php" class="btn btn-sm btn-outline-light rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
+        </div>
+        <div class="card-body p-4">
+            <form action="../controllers/procesar_cambiar_clave.php" method="POST" id="formCambiarClave">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="ID_usuario" value="<?php echo $id_usuario; ?>">
+                <div class="mb-3">
+                    <label class="form-label">Nueva Contraseña</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" name="nueva_clave" id="nueva_clave"
+                               placeholder="Mínimo 8 caracteres (letras y números)"
+                               minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$"
+                               title="Debe contener al menos 8 caracteres, incluyendo letras y números" required>
+                        <span class="input-group-text icono_ojo" style="cursor:pointer;">
+                            <i class="bi bi-eye" id="toggleIcon"></i>
+                        </span>
+                    </div>
+                    <small class="form-text text-muted">
+                        Mínimo 8 caracteres, debe incluir letras y números
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Confirmar Nueva Contraseña</label>
+                    <input type="password" class="form-control" name="confirmar_clave" id="confirmar_clave"
+                           placeholder="Confirmar contraseña" minlength="8" required>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check-circle me-1"></i> Cambiar Clave
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    
-    <!-- Confirmar nueva contraseña -->
-    <div class="datos_registro">
-        <label for="confirmar_clave">Confirmar Nueva Contraseña</label>
-        <input type="password" 
-               name="confirmar_clave" 
-               id="confirmar_clave" 
-               placeholder="Confirmar contraseña"
-               minlength="8"
-               required>
-    </div>
-    
-    <button type="submit" class="btn btn-primary w-100 boton_login">Cambiar clave</button>
-    <a href="usuarios.php" class="btn btn-outline-secondary w-100">Cancelar</a>
-</form>
+</div>
 
 <script>
     const formCambiarClave = document.getElementById('formCambiarClave');
     const nuevaClave = document.getElementById('nueva_clave');
     const confirmarClave = document.getElementById('confirmar_clave');
-    
-    // Validar al enviar
+    const toggleIcon = document.getElementById('toggleIcon');
+    const iconoOjo = document.querySelector('.icono_ojo');
+
+    iconoOjo.addEventListener('click', function() {
+        if (nuevaClave.type === 'password') {
+            nuevaClave.type = 'text';
+            toggleIcon.classList.remove('bi-eye');
+            toggleIcon.classList.add('bi-eye-slash');
+        } else {
+            nuevaClave.type = 'password';
+            toggleIcon.classList.remove('bi-eye-slash');
+            toggleIcon.classList.add('bi-eye');
+        }
+    });
+
     formCambiarClave.addEventListener('submit', function(e) {
-        // Verificar que coincidan
         if (nuevaClave.value !== confirmarClave.value) {
             e.preventDefault();
-            alert('❌ Las contraseñas no coinciden');
+            alert('Las contraseñas no coinciden');
             return false;
         }
-        
-        // Validar longitud
         if (nuevaClave.value.length < 8) {
             e.preventDefault();
-            alert('❌ La contraseña debe tener al menos 8 caracteres');
+            alert('La contraseña debe tener al menos 8 caracteres');
             return false;
         }
-        
-        // Validar letras y números
         const tieneLetras = /[A-Za-z]/.test(nuevaClave.value);
         const tieneNumeros = /[0-9]/.test(nuevaClave.value);
-        
         if (!tieneLetras || !tieneNumeros) {
             e.preventDefault();
-            alert('❌ La contraseña debe contener letras y números');
+            alert('La contraseña debe contener letras y números');
             return false;
         }
     });
-    
-    // Mostrar si coinciden en tiempo real
+
     confirmarClave.addEventListener('input', function() {
         if (this.value !== nuevaClave.value && this.value.length > 0) {
-            this.style.borderColor = 'red';
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+        } else if (this.value.length > 0) {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
         } else {
-            this.style.borderColor = '#2bb8ca';
+            this.classList.remove('is-invalid');
+            this.classList.remove('is-valid');
         }
     });
 </script>
 
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

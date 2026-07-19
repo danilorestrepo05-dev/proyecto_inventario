@@ -1,8 +1,7 @@
 <?php
-
 include("../config/conexion.php");
-// Verificar si el usuario ha iniciado sesión
 session_start();
+include("../config/csrf.php");
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit();
@@ -22,34 +21,45 @@ $mostrar_error = '';
 if (isset($_GET['error'])) {
     $error = htmlspecialchars($_GET['error']);
     $mostrar_error = "
-        <div class='alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3' style='z-index: 9999; width: auto;' role='alert'>
-            <i class='bi bi-check-circle-fill'></i> $error
+        <div class='alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3' style='z-index: 9999; width: auto;' role='alert'>
+            <i class='bi bi-exclamation-triangle-fill'></i> $error
         </div>
     ";
 }
 
-// Obtener el rol de la sesión
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
 $consulta = "
 SELECT 
     oc.ID_orden_compra,
-    oc.ID_proveedor,
+    prov.nombre_proveedor AS nombre_proveedor,
     oc.estado,
-    oc.total,
     oc.fecha,
     doc.cantidad,
+    doc.precio_unitario_compra,
+    (doc.cantidad * doc.precio_unitario_compra) AS subtotal,
     p.nombre AS nombre_producto
 FROM orden_compra oc
 JOIN detalle_orden_compra doc ON oc.ID_orden_compra = doc.ID_orden_compra
 JOIN producto p ON doc.ID_producto = p.ID_producto
+LEFT JOIN proveedor prov ON oc.ID_proveedor = prov.ID_proveedor
 ORDER BY oc.ID_orden_compra DESC
 ";
 $resultado = $conn->query($consulta);
+
+// Paginación
+$por_pagina = 10;
+$pagina_actual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+$total_registros = $resultado->num_rows;
+$total_paginas = max(1, ceil($total_registros / $por_pagina));
+$inicio = ($pagina_actual - 1) * $por_pagina;
+
+// Re-consultar con LIMIT
+$consulta_paginada = $consulta . " LIMIT $inicio, $por_pagina";
+$resultado_paginado = $conn->query($consulta_paginada);
 ?>
 
 <script>
-// Auto-ocultar mensajes después de 5 segundos
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
@@ -57,100 +67,122 @@ setTimeout(function() {
         alert.style.opacity = '0';
         setTimeout(function() {
             alert.remove();
-            // Limpiar la URL sin recargar la página
             if (window.history.replaceState) {
                 const url = window.location.href.split('?')[0];
                 window.history.replaceState({}, document.title, url);
             }
         }, 500);
     });
-}, 5000); // 5000 = 5 segundos
+}, 5000);
 </script>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="../assets/css/estilos.css"> -->
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
-    <title>Orden de compra</title>
+    <title>Órdenes de compra</title>
 </head>
 <body class="custom-body">
 <?php echo $mostrar_alerta; ?>
 <?php echo $mostrar_error; ?>
+
+<?php $nav_base = '..'; include('includes/navbar.php'); ?>
+
 <div class="container my-4">
-  <!-- Encabezado con botones -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
-    <h1 class="mb-3 mb-md-0 fs-3">Órdenes de compra</h1>
+    <h2 class="mb-3 mb-md-0"><i class="bi bi-cart3 me-2"></i>Órdenes de compra</h2>
     <div class="d-flex flex-column flex-sm-row gap-2">
-      <div class=" col-md-auto">
-    <form action="../controllers/cerrar_sesion.php" method="POST">
-      <button class="btn btn-secondary w-100 rounded-pill">Cerrar Sesión</button>
-    </form>
-  </div>
-      <div class=" col-md-auto">
-    <a href="../menu.php" class="btn btn-success w-100 rounded-pill">Volver al menú</a>
-  </div>
-  <div class=" col-md-auto">
-    <a href="agregar_orden_compra.php" class="btn btn-primary w-100 rounded-pill">Agregar orden</a>
-  </div>
+      <a href="agregar_orden_compra.php" class="btn btn-primary rounded-pill">
+        <i class="bi bi-plus-circle me-1"></i> Agregar orden
+      </a>
     </div>
   </div>
 
-  <!-- Buscador -->
   <div class="mb-3">
     <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill">
   </div>
 
-  <!-- Tabla -->
   <div class="table-responsive">
     <table class="table table-striped table-bordered align-middle tabla-usuarios">
-      <thead class="table-primary">
+      <thead class="table-dark">
         <tr>
           <th>ID Orden</th>
           <th>Producto</th>
           <th>Proveedor</th>
           <th>Estado</th>
           <th>Cantidad</th>
-          <th>Total</th>
+          <th>Precio Unit.</th>
+          <th>Subtotal</th>
           <th>Fecha</th>
-          <th>Opciones</th>
+          <?php if ($rol === 'Admin'): ?><th class="th-opciones">Opciones</th><?php endif; ?>
         </tr>
       </thead>
       <tbody>
         <?php
-        if ($resultado->num_rows > 0) {
-          while ($fila = $resultado->fetch_assoc()) {
+        if ($total_registros > 0) {
+          while ($fila = $resultado_paginado->fetch_assoc()) {
             echo "<tr>";
             echo "<td>{$fila['ID_orden_compra']}</td>";
             echo "<td>{$fila['nombre_producto']}</td>";
-            echo "<td>{$fila['ID_proveedor']}</td>";
-            echo "<td>{$fila['estado']}</td>";
-            echo "<td>{$fila['cantidad']}</td>";
-            echo "<td>$" . number_format($fila['total']) . "</td>";
-            echo "<td>{$fila['fecha']}</td>";
+            echo "<td>" . htmlspecialchars($fila['nombre_proveedor'] ?? 'Sin proveedor') . "</td>";
             echo "<td>";
-            if ($rol === 'Admin') {
-              echo "<a href='editar_orden.php?id={$fila['ID_orden_compra']}' class='btn btn-sm btn-warning'>Editar</a> 
-                    <a href='../controllers/eliminar_orden.php?id={$fila['ID_orden_compra']}' onclick=\"return confirm('¿Estás seguro?')\" class='btn btn-sm btn-danger'>Eliminar</a>";
-            } else {
-              echo "Sin permisos";
+            switch($fila['estado']) {
+                case 'Aprobado': echo "<span class='badge bg-success'>Aprobado</span>"; break;
+                case 'Procesando': echo "<span class='badge bg-warning text-dark'>Procesando</span>"; break;
+                case 'cancelado': echo "<span class='badge bg-danger'>Cancelado</span>"; break;
+                default: echo "<span class='badge bg-secondary'>" . htmlspecialchars($fila['estado']) . "</span>";
             }
             echo "</td>";
+            echo "<td>{$fila['cantidad']}</td>";
+            echo "<td>$" . number_format($fila['precio_unitario_compra'], 0, ',', '.') . "</td>";
+            echo "<td>$" . number_format($fila['subtotal'], 0, ',', '.') . "</td>";
+            echo "<td>{$fila['fecha']}</td>";
+            if ($rol === 'Admin') {
+            echo "<td class='td-opciones'>";
+              echo "<a href='editar_orden.php?id={$fila['ID_orden_compra']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a> 
+                    <a href='../controllers/eliminar_orden.php?id={$fila['ID_orden_compra']}&csrf_token=" . csrf_token() . "' onclick=\"return confirm('¿Estás seguro?')\" class='btn btn-sm btn-danger'><i class='bi bi-trash'></i></a>";
+            echo "</td>";
+            }
             echo "</tr>";
           }
         } else {
-          echo "<tr><td colspan='8' class='text-center'>Sin datos aún</td></tr>";
+          echo "<tr><td colspan='" . ($rol === 'Admin' ? 9 : 8) . "' class='text-center'>Sin datos aún</td></tr>";
         }
         ?>
       </tbody>
     </table>
+<?php if ($total_paginas > 1): ?>
+<div class="pagination-container">
+    <nav aria-label="Paginación">
+        <ul class="pagination mb-0">
+            <li class="page-item <?php echo $pagina_actual <= 1 ? 'disabled' : ''; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?>">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+            <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
+                <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+            </li>
+            <?php endfor; ?>
+            <li class="page-item <?php echo $pagina_actual >= $total_paginas ? 'disabled' : ''; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?>">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+<p class="pagination-info">Mostrando <?php echo $inicio + 1; ?>-<?php echo min($inicio + $por_pagina, $total_registros); ?> de <?php echo $total_registros; ?> registros</p>
+<?php endif; ?>
   </div>
 </div>
-      <script src="../assets/js/bootstrap.bundle.min.js" defer></script>
-      <script src="../assets/js/script.js" defer></script>
-    
+
+<script src="../assets/js/bootstrap.bundle.min.js" defer></script>
+<script src="../assets/js/script.js" defer></script>
 </body>
 </html>

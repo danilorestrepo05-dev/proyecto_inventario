@@ -1,8 +1,9 @@
 <?php
 include("../config/conexion.php");
 session_start();
+include('../config/csrf.php');
 if (!isset($_SESSION['usuario'])) {
-    header("Location: index.php");
+    header("Location: ../index.php");
     exit();
 }
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
@@ -31,6 +32,17 @@ if ($filtro_stock == 'bajo') {
 
 $sql .= " ORDER BY p.ID_producto DESC";
 $result = mysqli_query($conn, $sql);
+
+// Paginación
+$por_pagina = 10;
+$pagina_actual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+$total_registros = mysqli_num_rows($result);
+$total_paginas = max(1, ceil($total_registros / $por_pagina));
+$inicio = ($pagina_actual - 1) * $por_pagina;
+
+// Re-consultar con LIMIT
+$sql_paginada = $sql . " LIMIT $inicio, $por_pagina";
+$result = mysqli_query($conn, $sql_paginada);
 ?>
 
 <!DOCTYPE html>
@@ -39,11 +51,12 @@ $result = mysqli_query($conn, $sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informe de Productos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
 </head>
 <body class="custom-body">
+    <?php $nav_base = '..'; include('../views/includes/navbar.php'); ?>
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-box-seam"></i> Informe de Productos</h2>
@@ -82,6 +95,7 @@ $result = mysqli_query($conn, $sql);
         <!-- Botones de exportación -->
         <div class="mb-3 d-flex gap-2">
             <form method="POST" action="exportar_pdf.php" target="_blank">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="tipo" value="productos">
                 <input type="hidden" name="nombre" value="<?php echo htmlspecialchars($filtro_nombre); ?>">
                 <input type="hidden" name="stock" value="<?php echo htmlspecialchars($filtro_stock); ?>">
@@ -90,6 +104,7 @@ $result = mysqli_query($conn, $sql);
                 </button>
             </form>
             <form method="POST" action="exportar_excel.php">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="tipo" value="productos">
                 <input type="hidden" name="nombre" value="<?php echo htmlspecialchars($filtro_nombre); ?>">
                 <input type="hidden" name="stock" value="<?php echo htmlspecialchars($filtro_stock); ?>">
@@ -157,11 +172,35 @@ $result = mysqli_query($conn, $sql);
                             </tr>
                         </tfoot>
                     </table>
+                    <?php if ($total_paginas > 1): ?>
+                    <div class="pagination-container">
+                        <nav aria-label="Paginación">
+                            <ul class="pagination mb-0">
+                                <li class="page-item <?php echo $pagina_actual <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?><?php echo !empty($filtro_nombre) ? '&nombre='.htmlspecialchars($filtro_nombre) : ''; ?><?php echo !empty($filtro_stock) ? '&stock='.htmlspecialchars($filtro_stock) : ''; ?>">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                                <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $i; ?><?php echo !empty($filtro_nombre) ? '&nombre='.htmlspecialchars($filtro_nombre) : ''; ?><?php echo !empty($filtro_stock) ? '&stock='.htmlspecialchars($filtro_stock) : ''; ?>"><?php echo $i; ?></a>
+                                </li>
+                                <?php endfor; ?>
+                                <li class="page-item <?php echo $pagina_actual >= $total_paginas ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?><?php echo !empty($filtro_nombre) ? '&nombre='.htmlspecialchars($filtro_nombre) : ''; ?><?php echo !empty($filtro_stock) ? '&stock='.htmlspecialchars($filtro_stock) : ''; ?>">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <p class="pagination-info">Mostrando <?php echo $inicio + 1; ?>-<?php echo min($inicio + $por_pagina, $total_registros); ?> de <?php echo $total_registros; ?> registros</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -72,15 +72,15 @@ $result_detalle = mysqli_query($conn, $sql_detalle);
         <table class="table table-sm table-borderless">
             <tr>
                 <td class="fw-bold">Nombre:</td>
-                <td><?php echo $venta['nombre'] . ' ' . $venta['apellido']; ?></td>
+                <td><?php echo htmlspecialchars($venta['nombre'] . ' ' . $venta['apellido']); ?></td>
             </tr>
             <tr>
                 <td class="fw-bold">Teléfono:</td>
-                <td><?php echo $venta['telefono']; ?></td>
+                <td><?php echo htmlspecialchars($venta['telefono']); ?></td>
             </tr>
             <tr>
                 <td class="fw-bold">Correo:</td>
-                <td><?php echo $venta['correo']; ?></td>
+                <td><?php echo htmlspecialchars($venta['correo']); ?></td>
             </tr>
         </table>
     </div>

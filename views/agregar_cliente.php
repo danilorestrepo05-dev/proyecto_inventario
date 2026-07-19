@@ -1,66 +1,59 @@
 <?php 
-
 include("../config/conexion.php");
-
-// Verificar si el usuario ha iniciado sesión
 session_start();
-if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
-    exit();
-}
-
-$consulta = "SELECT * FROM cliente";
-$resultado = $conn->query($consulta);
-
-//if ($resultado->num_rows == 0) {
-  //  echo "Usuario no encontrado.";
-   //exit;
-//}
-
-$fila_usuario = $resultado->fetch_assoc();
-
-
+include('../config/csrf.php');
+if (!isset($_SESSION['usuario'])) { header("Location: ../index.php"); exit(); }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar nuevo cliente</title>
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
+    <title>Agregar Cliente</title>
 </head>
-<body class="registro_usuario">
-    <div class="registrarse">
-        <h1>Información del nuevo cliente</h1>
-        
-        <form action="../controllers/procesar_nuevo_cliente.php" method="POST" class="formulario_registro">
-            
+<body class="custom-body">
+<?php $nav_base = '..'; include('includes/navbar.php'); ?>
 
-            <div class="datos_registro">
-                <label for="tipo_usuario">Nombre</label>
-                <input type="text" name="nombre" id="nombres" placeholder="Nombres" required>
-            </div>
-            
-            <div class="datos_registro">
-                <label for="tipo_usuario">Apellido</label>
-                <input type="text" name="apellido" id="apellidos" placeholder="Apellidos" required>
-            </div>
-            
-            <div class="datos_registro">
-                <label for="tipo_usuario">Correo Electrónico</label>
-                <input type="email" name="correo" id="email" placeholder="Correo electrónico" required>
-            </div>
-
-            <div class="datos_registro">
-                <label for="tipo_usuario">Teléfono</label>
-                <input type="text" name="telefono" id="telefono" placeholder="Teléfono" required>
-            </div>
-            
-            
-            <button type="submit" class="boton_registro">Guardar cliente</button>
-            
-        </form>
+<div class="container py-4">
+    <div class="form-card card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Agregar Cliente</h5>
+            <a href="clientes.php" class="btn btn-sm btn-outline-light rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
+        </div>
+        <div class="card-body p-4">
+            <form action="../controllers/procesar_nuevo_cliente.php" method="POST">
+                <?php echo csrf_field(); ?>
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" name="nombre" placeholder="Nombres" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Apellido</label>
+                    <input type="text" class="form-control" name="apellido" placeholder="Apellidos" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" class="form-control" name="correo" placeholder="Correo electrónico" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" name="telefono" placeholder="Teléfono" required>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check-circle me-1"></i> Guardar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
+
+<script src="../assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

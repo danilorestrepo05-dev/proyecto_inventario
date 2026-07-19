@@ -72,19 +72,19 @@ $result_detalle = mysqli_query($conn, $sql_detalle);
         <table class="table table-sm table-borderless">
             <tr>
                 <td class="fw-bold">Nombre:</td>
-                <td><?php echo $compra['nombre_proveedor']; ?></td>
+                <td><?php echo htmlspecialchars($compra['nombre_proveedor']); ?></td>
             </tr>
             <tr>
                 <td class="fw-bold">Teléfono:</td>
-                <td><?php echo $compra['telefono']; ?></td>
+                <td><?php echo htmlspecialchars($compra['telefono']); ?></td>
             </tr>
             <tr>
                 <td class="fw-bold">Correo:</td>
-                <td><?php echo $compra['correo']; ?></td>
+                <td><?php echo htmlspecialchars($compra['correo']); ?></td>
             </tr>
             <tr>
                 <td class="fw-bold">Dirección:</td>
-                <td><?php echo $compra['direccion']; ?></td>
+                <td><?php echo htmlspecialchars($compra['direccion']); ?></td>
             </tr>
         </table>
     </div>

@@ -2,7 +2,6 @@
 include("config/conexion.php");
 session_start();
 
-// Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['usuario'])) {
     header("Location: index.php");
     exit();
@@ -18,12 +17,10 @@ if (isset($_GET['mensaje'])) {
     ";
 }
 
-// Obtener el rol del usuario desde la sesión
 $rol = $_SESSION['rol'];
 ?>
 
 <script>
-// Auto-ocultar mensajes después de 5 segundos
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
@@ -31,14 +28,13 @@ setTimeout(function() {
         alert.style.opacity = '0';
         setTimeout(function() {
             alert.remove();
-            // Limpiar la URL sin recargar la página
             if (window.history.replaceState) {
                 const url = window.location.href.split('?')[0];
                 window.history.replaceState({}, document.title, url);
             }
         }, 500);
     });
-}, 5000); // 5000 = 5 segundos
+}, 5000);
 </script>
 
 <!DOCTYPE html>
@@ -47,145 +43,137 @@ setTimeout(function() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGI - Sistema de Gestión de Inventarios</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/css/estilos.css">
-<link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <style>
-        .dashboard-container {
-            max-width: 1100px;
-            margin: auto;
-        }
-        .dashboard-card {
-            border-radius: 8px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-align: center;
-            padding: 15px;
-            height: 140px;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-        .dashboard-card h6 {
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .logo img {
-            max-width: 90px;
-        }
-    </style>
 </head>
 <body class="custom-body">
+
+<?php include('views/includes/navbar.php'); ?>
+
 <?php echo $mostrar_alerta; ?>
-    <div class="container py-4 dashboard-container">
-        <div class="text-center mb-4">
-            <div class="logo">
-                <img src="assets/img/sgi-software (1).png" alt="SGI">
-            </div>
-            <h2 class="mt-2">Bienvenido al Sistema</h2>
-            <p class="text-muted">Seleccione un módulo para continuar</p>
+
+<div class="container py-4 dashboard-container">
+    <div class="text-center mb-4">
+        <div class="logo">
+            <img src="assets/img/sgi-software (1).png" alt="SGI">
         </div>
-
-        <!-- Opciones en cuadrícula -->
-        <div class="row g-3">
-            <?php if ($rol === 'Admin'): ?>
-            <div class="col-6 col-md-3">
-                <a href="views/usuarios.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">👤</span>
-                            <h6>Usuarios</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <?php endif; ?>
-
-            <div class="col-6 col-md-3">
-                <a href="views/proveedores.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">🏢</span>
-                            <h6>Proveedores</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <a href="views/productos.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">📦</span>
-                            <h6>Productos</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <a href="views/ventas.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">💰</span>
-                            <h6>Ventas</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <a href="views/clientes.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">👥</span>
-                            <h6>Clientes</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <a href="views/orden_compra.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">🛒</span>
-                            <h6>Órdenes</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <?php if ($rol === 'Admin'): ?>
-            <div class="col-6 col-md-3">
-                <a href="views/registro.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">➕</span>
-                            <h6>Registro</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <?php endif; ?>
-
-            <div class="col-6 col-md-3">
-                <a href="reports/informes.php" class="text-decoration-none text-dark">
-                    <div class="card dashboard-card shadow-sm">
-                        <div class="card-body">
-                            <span style="font-size:30px;">📊</span>
-                            <h6>Informes</h6>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <form action="controllers/cerrar_sesion.php" method="POST" class="mt-3 text-center">
-            <button class="btn btn-danger px-4">Cerrar sesión</button>
-        </form>
+        <h2 class="mt-2 fw-semibold">Bienvenido al Sistema</h2>
+        <p class="text-muted">Seleccione un módulo para continuar</p>
     </div>
-    <script src="../assets/js/script.js"></script>
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
+
+    <div class="row g-3 justify-content-center">
+        <?php if ($rol === 'Admin'): ?>
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/usuarios.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-usuarios">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-blue">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Usuarios</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/clientes.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-clientes">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-teal">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Clientes</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/proveedores.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-proveedores">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-green">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Proveedores</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/productos.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-productos">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-orange">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Productos</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/ventas.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-ventas">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-purple">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Ventas</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/orden_compra.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-ordenes">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-red">
+                            <i class="bi bi-cart3"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Órdenes</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="reports/informes.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-informes">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-indigo">
+                            <i class="bi bi-file-earmark-bar-graph"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Informes</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <?php if ($rol === 'Admin'): ?>
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/registro.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-registro">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-cyan">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Registro</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/script.js"></script>
 </body>
 </html>

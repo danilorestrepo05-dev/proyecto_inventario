@@ -1,8 +1,7 @@
 <?php
-
 include("../config/conexion.php");
-// Verificar si el usuario ha iniciado sesión
 session_start();
+include("../config/csrf.php");
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit();
@@ -18,16 +17,24 @@ if (isset($_GET['mensaje'])) {
     ";
 }
 
-
-// Obtener el rol de la sesión
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
-$consulta = "SELECT * FROM producto";
+$consulta = "SELECT * FROM producto ORDER BY ID_producto DESC";
 $resultado = $conn->query($consulta);
+
+// Paginación
+$por_pagina = 10;
+$pagina_actual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+$total_registros = $resultado->num_rows;
+$total_paginas = max(1, ceil($total_registros / $por_pagina));
+$inicio = ($pagina_actual - 1) * $por_pagina;
+
+// Re-consultar con LIMIT
+$consulta_paginada = $consulta . " LIMIT $inicio, $por_pagina";
+$resultado_paginado = $conn->query($consulta_paginada);
 ?>
 
 <script>
-// Auto-ocultar mensajes después de 5 segundos
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
@@ -35,14 +42,13 @@ setTimeout(function() {
         alert.style.opacity = '0';
         setTimeout(function() {
             alert.remove();
-            // Limpiar la URL sin recargar la página
             if (window.history.replaceState) {
                 const url = window.location.href.split('?')[0];
                 window.history.replaceState({}, document.title, url);
             }
         }, 500);
     });
-}, 5000); // 5000 = 5 segundos
+}, 5000);
 </script>
 
 <!DOCTYPE html>
@@ -51,39 +57,32 @@ setTimeout(function() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
     <title>Gestión de productos</title>
 </head>
 <body class="custom-body">
 <?php echo $mostrar_alerta; ?>
+
+<?php $nav_base = '..'; include('includes/navbar.php'); ?>
+
 <div class="container my-4">
-  <!-- Encabezado con botones -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
-    <h1 class="mb-3 mb-md-0 fs-3">Gestión de productos</h1>
+    <h2 class="mb-3 mb-md-0"><i class="bi bi-box-seam me-2"></i>Gestión de productos</h2>
     <div class="d-flex flex-column flex-sm-row gap-2">
-      <div class="col-md-auto">
-        <form action="../controllers/cerrar_sesion.php" method="POST">
-          <button class="btn btn-secondary w-100 rounded-pill">Cerrar Sesión</button>
-        </form>
-      </div>
-      <div class="col-md-auto">
-        <a href="../menu.php" class="btn btn-success w-100 rounded-pill">Volver al menú</a>
-      </div>
-      <div class="col-md-auto">
-        <a href="agregar_producto.php" class="btn btn-primary w-100 rounded-pill">Agregar producto</a>
-      </div>
+      <a href="agregar_producto.php" class="btn btn-primary rounded-pill">
+        <i class="bi bi-plus-circle me-1"></i> Agregar producto
+      </a>
     </div>
   </div>
 
-  <!-- Buscador -->
   <div class="mb-3">
     <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill">
   </div>
 
-  <!-- Tabla -->
   <div class="table-responsive">
     <table class="table table-striped table-bordered align-middle tabla-usuarios">
-      <thead class="table-primary">
+      <thead class="table-dark">
         <tr>
           <th>Código</th>
           <th>Nombre</th>
@@ -91,36 +90,67 @@ setTimeout(function() {
           <th>Precio Unidad</th>
           <th>Descripción</th>
           <th>Fecha</th>
-          <th>Opciones</th>
+          <?php if ($rol === 'Admin'): ?><th class="th-opciones">Opciones</th><?php endif; ?>
         </tr>
       </thead>
       <tbody>
         <?php
-        if ($resultado->num_rows > 0) {
-          while ($fila = $resultado->fetch_assoc()) {
+        if ($total_registros > 0) {
+          while ($fila = $resultado_paginado->fetch_assoc()) {
             echo "<tr>";
             echo "<td>{$fila['ID_producto']}</td>";
             echo "<td>{$fila['nombre']}</td>";
-            echo "<td>{$fila['stock']}</td>";
+            echo "<td>";
+            $stock = intval($fila['stock']);
+            if ($stock < 10) {
+                echo "<span class='badge-stock-bajo'>Bajo (" . $stock . ")</span>";
+            } elseif ($stock <= 50) {
+                echo "<span class='badge-stock-medio'>Medio (" . $stock . ")</span>";
+            } else {
+                echo "<span class='badge-stock-alto'>Alto (" . $stock . ")</span>";
+            }
+            echo "</td>";
             echo "<td>$" . number_format($fila['precio']) . "</td>";
             echo "<td>{$fila['descripcion']}</td>";
             echo "<td>{$fila['fecha']}</td>";
-            echo "<td>";
             if ($rol === 'Admin') {
-              echo "<a href='editar_producto.php?id={$fila['ID_producto']}' class='btn btn-sm btn-warning'>Editar</a> 
-                    <a href='../controllers/eliminar_producto.php?id={$fila['ID_producto']}' onclick=\"return confirm('¿Estás seguro de eliminar este producto?')\" class='btn btn-sm btn-danger'>Eliminar</a>";
-            } else {
-              echo "Sin permisos";
-            }
+            echo "<td class='td-opciones'>";
+              echo "<a href='editar_producto.php?id={$fila['ID_producto']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a> 
+                    <a href='../controllers/eliminar_producto.php?id={$fila['ID_producto']}&csrf_token=" . csrf_token() . "' onclick=\"return confirm('¿Estás seguro de eliminar este producto?')\" class='btn btn-sm btn-danger'><i class='bi bi-trash'></i></a>";
             echo "</td>";
+            }
             echo "</tr>";
           }
         } else {
-          echo "<tr><td colspan='7' class='text-center'>Sin datos aún</td></tr>";
+          echo "<tr><td colspan='" . ($rol === 'Admin' ? 7 : 6) . "' class='text-center'>Sin datos aún</td></tr>";
         }
         ?>
       </tbody>
     </table>
+<?php if ($total_paginas > 1): ?>
+<div class="pagination-container">
+    <nav aria-label="Paginación">
+        <ul class="pagination mb-0">
+            <li class="page-item <?php echo $pagina_actual <= 1 ? 'disabled' : ''; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?>">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+            <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
+                <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+            </li>
+            <?php endfor; ?>
+            <li class="page-item <?php echo $pagina_actual >= $total_paginas ? 'disabled' : ''; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?>">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+<p class="pagination-info">Mostrando <?php echo $inicio + 1; ?>-<?php echo min($inicio + $por_pagina, $total_registros); ?> de <?php echo $total_registros; ?> registros</p>
+<?php endif; ?>
   </div>
 </div>
 
