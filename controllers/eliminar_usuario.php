@@ -4,28 +4,28 @@ include("../config/conexion.php");
 include("../config/csrf.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
-    header("Location: ../index.php");
+    echo "<script>alert('Acceso denegado'); window.location='../views/usuarios.php';</script>";
     exit();
 }
 
 if (!csrf_validate($_GET['csrf_token'] ?? '')) {
-    header("Location: ../views/usuarios.php?error=Token CSRF inválido");
+    echo "<script>alert('Token CSRF inválido'); window.location='../views/usuarios.php';</script>";
     exit();
 }
 
 $codigo = intval($_REQUEST['id']);
 
-$consulta = "DELETE FROM usuario WHERE ID_usuario = ?";
-$stmt = $conn->prepare($consulta);
+$sql = "UPDATE usuario SET activo = NOT activo WHERE ID_usuario = ?";
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $codigo);
 
 if ($stmt->execute()) {
     $stmt->close();
     mysqli_close($conn);
-    header("Location: ../views/usuarios.php?mensaje=Usuario eliminado correctamente");
+    header("Location: ../views/usuarios.php?mensaje=Estado del usuario actualizado");
     exit();
 } else {
-    echo "Error al eliminar el usuario: " . $conn->error;
+    echo "Error al cambiar estado del usuario: " . $conn->error;
     $stmt->close();
     mysqli_close($conn);
 }

@@ -15,48 +15,17 @@ if (!csrf_validate($_GET['csrf_token'] ?? '')) {
 
 $codigo = intval($_REQUEST['id']);
 
-// Verificar si el producto tiene ventas o compras asociadas
-$sql_verificar = "SELECT 
-    (SELECT COUNT(*) FROM detalle_orden_venta WHERE ID_producto = ?) as ventas,
-    (SELECT COUNT(*) FROM detalle_orden_compra WHERE ID_producto = ?) as compras";
-$stmt = $conn->prepare($sql_verificar);
-$stmt->bind_param("ii", $codigo, $codigo);
-$stmt->execute();
-$verificacion = $stmt->get_result()->fetch_assoc();
-$stmt->close();
-
-// Si tiene registros asociados, NO permitir eliminación
-if ($verificacion['ventas'] > 0 || $verificacion['compras'] > 0) {
-    $mensaje = "No se puede eliminar este producto\\n\\n";
-    $mensaje .= "Tiene registros asociados:\\n";
-    if ($verificacion['ventas'] > 0) {
-        $mensaje .= "- " . $verificacion['ventas'] . " venta(s)\\n";
-    }
-    if ($verificacion['compras'] > 0) {
-        $mensaje .= "- " . $verificacion['compras'] . " compra(s)\\n";
-    }
-    $mensaje .= "\\nNo es posible eliminar productos con historial de transacciones para mantener la integridad de los datos.";
-
-    mysqli_close($conn);
-    echo "<script>
-            alert('$mensaje');
-            window.location.href = '../views/productos.php';
-          </script>";
-    exit();
-}
-
-// Si NO tiene registros asociados, permitir eliminación
-$consulta = "DELETE FROM producto WHERE ID_producto = ?";
-$stmt = $conn->prepare($consulta);
+$sql = "UPDATE producto SET activo = NOT activo WHERE ID_producto = ?";
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $codigo);
 
 if ($stmt->execute()) {
     $stmt->close();
     mysqli_close($conn);
-    header("Location: ../views/productos.php?mensaje=Producto eliminado correctamente");
+    header("Location: ../views/productos.php?mensaje=Estado del producto actualizado");
     exit();
 } else {
-    echo "Error al eliminar el producto: " . $conn->error;
+    echo "Error al cambiar estado del producto: " . $conn->error;
     $stmt->close();
     mysqli_close($conn);
 }

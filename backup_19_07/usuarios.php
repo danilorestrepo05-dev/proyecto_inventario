@@ -22,10 +22,7 @@ if ($_SESSION['rol'] !== 'Admin') {
     exit();
 }
 
-$mostrar_inactivos = isset($_GET['inactivos']) && $_GET['inactivos'] == '1';
-
-$filtro = $mostrar_inactivos ? "" : "WHERE activo = 1";
-$consulta = "SELECT * FROM usuario $filtro ORDER BY activo ASC, ID_usuario DESC";
+$consulta = "SELECT * FROM usuario ORDER BY ID_usuario DESC";
 $resultado = $conn->query($consulta);
 
 // Paginación
@@ -38,8 +35,6 @@ $inicio = ($pagina_actual - 1) * $por_pagina;
 // Re-consultar con LIMIT
 $consulta_paginada = $consulta . " LIMIT $inicio, $por_pagina";
 $resultado_paginado = $conn->query($consulta_paginada);
-
-$params_base = $mostrar_inactivos ? 'inactivos=1&' : '';
 ?>
 
 <script>
@@ -84,12 +79,8 @@ setTimeout(function() {
     </div>
   </div>
 
-  <div class="d-flex flex-column flex-sm-row gap-3 mb-3 align-items-stretch align-items-sm-center">
-    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill" style="flex:1;">
-    <a href="?<?php echo $mostrar_inactivos ? '' : 'inactivos=1'; ?>" class="btn btn-sm <?php echo $mostrar_inactivos ? 'btn-outline-secondary' : 'btn-outline-dark'; ?> rounded-pill whitespace-nowrap">
-      <i class="bi bi-eye<?php echo $mostrar_inactivos ? '-slash' : ''; ?> me-1"></i>
-      <?php echo $mostrar_inactivos ? 'Ocultar inactivos' : 'Mostrar inactivos'; ?>
-    </a>
+  <div class="mb-3">
+    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill">
   </div>
 
   <div class="table-responsive">
@@ -101,30 +92,24 @@ setTimeout(function() {
           <th>Apellido</th>
           <th>Correo electrónico</th>
           <th>Tipo de usuario</th>
-          <th class="th-opciones">Opciones</th>
+          <th>Opciones</th>
         </tr>
       </thead>
       <tbody>
         <?php
         if ($total_registros > 0) {
           while ($fila = $resultado_paginado->fetch_assoc()) {
-            $es_inactivo = !$fila['activo'];
-            $clase_fila = $es_inactivo ? 'table-secondary' : '';
-            $texto_estado = $es_inactivo ? '<span class="badge bg-secondary">Inactivo</span> ' : '';
-            echo "<tr class='$clase_fila'>";
+            echo "<tr>";
             echo "<td>{$fila['ID_usuario']}</td>";
-            echo "<td>" . $texto_estado . "{$fila['nombre']}</td>";
+            echo "<td>{$fila['nombre']}</td>";
             echo "<td>{$fila['apellido']}</td>";
             echo "<td>{$fila['correo']}</td>";
             echo "<td>{$fila['rol']}</td>";
-            echo "<td class='td-opciones'>";
-              echo "<a href='editar_usuario.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a> ";
-              $icono_toggle = $es_inactivo ? 'bi-arrow-counterclockwise' : 'bi-toggle-on';
-              $clase_toggle = $es_inactivo ? 'btn-success' : 'btn-outline-danger';
-              $titulo_toggle = $es_inactivo ? 'Restaurar' : 'Desactivar';
-              echo "<a href='../controllers/eliminar_usuario.php?id={$fila['ID_usuario']}&csrf_token=" . csrf_token() . "' class='btn btn-sm $clase_toggle' title='$titulo_toggle'><i class='bi $icono_toggle'></i></a> ";
-              echo "<a href='recuperar_clave.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-info'><i class='bi bi-key'></i></a>";
-            echo "</td>";
+            echo "<td>
+                    <a href='editar_usuario.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a>
+                    <a href='../controllers/eliminar_usuario.php?id={$fila['ID_usuario']}&csrf_token=<?php echo csrf_token(); ?>' onclick=\"return confirm('¿Estás seguro de eliminar este usuario?')\" class='btn btn-sm btn-danger'><i class='bi bi-trash'></i></a>
+                    <a href='recuperar_clave.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-info'><i class='bi bi-key'></i></a>
+                  </td>";
             echo "</tr>";
           }
         } else {
@@ -138,17 +123,17 @@ setTimeout(function() {
     <nav aria-label="Paginación">
         <ul class="pagination mb-0">
             <li class="page-item <?php echo $pagina_actual <= 1 ? 'disabled' : ''; ?>">
-                <a class="page-link" href="?<?php echo $params_base; ?>pagina=<?php echo $pagina_actual - 1; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?>">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
             <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
             <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
-                <a class="page-link" href="?<?php echo $params_base; ?>pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
             </li>
             <?php endfor; ?>
             <li class="page-item <?php echo $pagina_actual >= $total_paginas ? 'disabled' : ''; ?>">
-                <a class="page-link" href="?<?php echo $params_base; ?>pagina=<?php echo $pagina_actual + 1; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?>">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>

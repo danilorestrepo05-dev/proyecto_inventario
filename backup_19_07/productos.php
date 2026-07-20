@@ -17,15 +17,9 @@ if (isset($_GET['mensaje'])) {
     ";
 }
 
-if ($_SESSION['rol'] !== 'Admin') {
-    header("Location: ../menu.php");
-    exit();
-}
+$rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
-$mostrar_inactivos = isset($_GET['inactivos']) && $_GET['inactivos'] == '1';
-
-$filtro = $mostrar_inactivos ? "" : "WHERE activo = 1";
-$consulta = "SELECT * FROM usuario $filtro ORDER BY activo ASC, ID_usuario DESC";
+$consulta = "SELECT * FROM producto ORDER BY ID_producto DESC";
 $resultado = $conn->query($consulta);
 
 // Paginación
@@ -38,8 +32,6 @@ $inicio = ($pagina_actual - 1) * $por_pagina;
 // Re-consultar con LIMIT
 $consulta_paginada = $consulta . " LIMIT $inicio, $por_pagina";
 $resultado_paginado = $conn->query($consulta_paginada);
-
-$params_base = $mostrar_inactivos ? 'inactivos=1&' : '';
 ?>
 
 <script>
@@ -67,7 +59,7 @@ setTimeout(function() {
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
-    <title>Gestión de usuarios</title>
+    <title>Gestión de productos</title>
 </head>
 <body class="custom-body">
 <?php echo $mostrar_alerta; ?>
@@ -76,59 +68,61 @@ setTimeout(function() {
 
 <div class="container my-4">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
-    <h2 class="mb-3 mb-md-0"><i class="bi bi-person-gear me-2"></i>Gestión de usuarios</h2>
+    <h2 class="mb-3 mb-md-0"><i class="bi bi-box-seam me-2"></i>Gestión de productos</h2>
     <div class="d-flex flex-column flex-sm-row gap-2">
-      <a href="registro.php" class="btn btn-primary rounded-pill">
-        <i class="bi bi-plus-circle me-1"></i> Agregar usuario
+      <a href="agregar_producto.php" class="btn btn-primary rounded-pill">
+        <i class="bi bi-plus-circle me-1"></i> Agregar producto
       </a>
     </div>
   </div>
 
-  <div class="d-flex flex-column flex-sm-row gap-3 mb-3 align-items-stretch align-items-sm-center">
-    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill" style="flex:1;">
-    <a href="?<?php echo $mostrar_inactivos ? '' : 'inactivos=1'; ?>" class="btn btn-sm <?php echo $mostrar_inactivos ? 'btn-outline-secondary' : 'btn-outline-dark'; ?> rounded-pill whitespace-nowrap">
-      <i class="bi bi-eye<?php echo $mostrar_inactivos ? '-slash' : ''; ?> me-1"></i>
-      <?php echo $mostrar_inactivos ? 'Ocultar inactivos' : 'Mostrar inactivos'; ?>
-    </a>
+  <div class="mb-3">
+    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill">
   </div>
 
   <div class="table-responsive">
     <table class="table table-striped table-bordered align-middle tabla-usuarios">
       <thead class="table-dark">
         <tr>
-          <th>ID</th>
+          <th>Código</th>
           <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Correo electrónico</th>
-          <th>Tipo de usuario</th>
-          <th class="th-opciones">Opciones</th>
+          <th>Cantidad</th>
+          <th>Precio Unidad</th>
+          <th>Descripción</th>
+          <th>Fecha</th>
+          <?php if ($rol === 'Admin'): ?><th class="th-opciones">Opciones</th><?php endif; ?>
         </tr>
       </thead>
       <tbody>
         <?php
         if ($total_registros > 0) {
           while ($fila = $resultado_paginado->fetch_assoc()) {
-            $es_inactivo = !$fila['activo'];
-            $clase_fila = $es_inactivo ? 'table-secondary' : '';
-            $texto_estado = $es_inactivo ? '<span class="badge bg-secondary">Inactivo</span> ' : '';
-            echo "<tr class='$clase_fila'>";
-            echo "<td>{$fila['ID_usuario']}</td>";
-            echo "<td>" . $texto_estado . "{$fila['nombre']}</td>";
-            echo "<td>{$fila['apellido']}</td>";
-            echo "<td>{$fila['correo']}</td>";
-            echo "<td>{$fila['rol']}</td>";
-            echo "<td class='td-opciones'>";
-              echo "<a href='editar_usuario.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a> ";
-              $icono_toggle = $es_inactivo ? 'bi-arrow-counterclockwise' : 'bi-toggle-on';
-              $clase_toggle = $es_inactivo ? 'btn-success' : 'btn-outline-danger';
-              $titulo_toggle = $es_inactivo ? 'Restaurar' : 'Desactivar';
-              echo "<a href='../controllers/eliminar_usuario.php?id={$fila['ID_usuario']}&csrf_token=" . csrf_token() . "' class='btn btn-sm $clase_toggle' title='$titulo_toggle'><i class='bi $icono_toggle'></i></a> ";
-              echo "<a href='recuperar_clave.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-info'><i class='bi bi-key'></i></a>";
+            echo "<tr>";
+            echo "<td>{$fila['ID_producto']}</td>";
+            echo "<td>{$fila['nombre']}</td>";
+            echo "<td>";
+            $stock = intval($fila['stock']);
+            if ($stock < 10) {
+                echo "<span class='badge-stock-bajo'>Bajo (" . $stock . ")</span>";
+            } elseif ($stock <= 50) {
+                echo "<span class='badge-stock-medio'>Medio (" . $stock . ")</span>";
+            } else {
+                echo "<span class='badge-stock-alto'>Alto (" . $stock . ")</span>";
+            }
             echo "</td>";
+            echo "<td>$" . number_format($fila['precio']) . "</td>";
+            echo "<td>{$fila['descripcion']}</td>";
+            echo "<td>{$fila['fecha']}</td>";
+            if ($rol === 'Admin') {
+            echo "<td class='td-opciones'>";
+              echo "<a href='editar_producto.php?id={$fila['ID_producto']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a> 
+                    <a href='../controllers/eliminar_producto.php?id={$fila['ID_producto']}&csrf_token=" . csrf_token() . "' onclick=\"return confirm('¿Estás seguro de eliminar este producto?')\" class='btn btn-sm btn-danger'><i class='bi bi-trash'></i></a>";
+            echo "</td>";
+            }
             echo "</tr>";
           }
         } else {
-          echo "<tr><td colspan='6' class='text-center'>Sin datos aún</td></tr>";
+          echo "<tr><td colspan='" . ($rol === 'Admin' ? 7 : 6) . "' class='text-center'>Sin datos aún</td></tr>";
         }
         ?>
       </tbody>
@@ -138,17 +132,17 @@ setTimeout(function() {
     <nav aria-label="Paginación">
         <ul class="pagination mb-0">
             <li class="page-item <?php echo $pagina_actual <= 1 ? 'disabled' : ''; ?>">
-                <a class="page-link" href="?<?php echo $params_base; ?>pagina=<?php echo $pagina_actual - 1; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?>">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
             <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
             <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
-                <a class="page-link" href="?<?php echo $params_base; ?>pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
             </li>
             <?php endfor; ?>
             <li class="page-item <?php echo $pagina_actual >= $total_paginas ? 'disabled' : ''; ?>">
-                <a class="page-link" href="?<?php echo $params_base; ?>pagina=<?php echo $pagina_actual + 1; ?>">
+                <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?>">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
