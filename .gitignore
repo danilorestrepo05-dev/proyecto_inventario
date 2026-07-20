@@ -25,6 +25,7 @@ Desktop.ini
 
 # Archivos de opencode
 opencode.json
+AGENTS.md
 
 # Archivos generados por FPDF (cache)
 fpdf/makefont/*.ttf
