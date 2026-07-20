@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='../views/ventas.php';</script>";
@@ -66,6 +67,7 @@ try {
     
     // Si todo salió bien, confirmar cambios
     $conn->commit();
+    registrar_cambio($conn, 'venta', 'editar', $codigo, 'Venta #'.$codigo.' eliminada');
     mysqli_close($conn);
     header("Location: ../views/ventas.php?mensaje=Venta eliminada correctamente");
     exit();

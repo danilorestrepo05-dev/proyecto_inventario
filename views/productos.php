@@ -11,7 +11,7 @@ $mostrar_alerta = '';
 if (isset($_GET['mensaje'])) {
     $mensaje = htmlspecialchars($_GET['mensaje']);
     $mostrar_alerta = "
-        <div class='alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3' style='z-index: 9999; width: auto;' role='alert'>
+        <div class='alert alert-success alert-dismissible fade show alert-flotante' role='alert'>
             <i class='bi bi-check-circle-fill'></i> $mensaje
         </div>
     ";
@@ -67,19 +67,17 @@ setTimeout(function() {
     <title>Gestión de productos</title>
 </head>
 <body class="custom-body">
-<?php echo $mostrar_alerta; ?>
 
 <?php $nav_base = '..'; include('includes/navbar.php'); ?>
+<?php echo $mostrar_alerta; ?>
 
 <div class="container my-4">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
     <h2 class="mb-3 mb-md-0"><i class="bi bi-box-seam me-2"></i>Gestión de productos</h2>
     <div class="d-flex flex-column flex-sm-row gap-2">
-      <?php if ($rol === 'Admin'): ?>
       <a href="agregar_producto.php" class="btn btn-primary rounded-pill">
         <i class="bi bi-plus-circle me-1"></i> Agregar producto
       </a>
-      <?php endif; ?>
     </div>
   </div>
 

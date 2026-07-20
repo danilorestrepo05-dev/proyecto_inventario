@@ -6,6 +6,17 @@ body.custom-body {
     font-family: 'Segoe UI', Arial, sans-serif;
 }
 
+.alert-flotante {
+    position: fixed;
+    top: 62px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: auto;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 /* =========================================
    NAVBAR
    ========================================= */
@@ -533,6 +544,11 @@ body.custom-body {
     border-radius: 6px;
     font-weight: 600;
     font-size: 0.8rem;
+}
+
+.bg-purple {
+    background-color: #6f42c1 !important;
+    color: #fff;
 }
 
 /* =========================================

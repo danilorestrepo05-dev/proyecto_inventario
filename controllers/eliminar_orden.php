@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='../views/orden_compra.php';</script>";
@@ -66,6 +67,7 @@ try {
     
     // Si todo salió bien, confirmar cambios
     $conn->commit();
+    registrar_cambio($conn, 'orden_compra', 'editar', $codigo, 'Orden #'.$codigo.' eliminada');
     mysqli_close($conn);
     header("Location: ../views/orden_compra.php?mensaje=Orden eliminada correctamente");
     exit();

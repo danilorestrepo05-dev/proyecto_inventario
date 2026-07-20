@@ -27,6 +27,7 @@ backup_*/
 # Archivos de opencode
 opencode.json
 AGENTS.md
+CHANGELOG.md
 
 # Archivos generados por FPDF (cache)
 fpdf/makefont/*.ttf

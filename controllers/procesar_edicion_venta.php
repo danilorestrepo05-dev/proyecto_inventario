@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='../views/ventas.php';</script>";
@@ -14,7 +15,7 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
 }
 
 $id_orden = intval($_POST['id_orden']);
-$cliente = intval($_POST['cliente']);
+$cliente = intval($_POST['cliente']) ?: null;
 $estado = $_POST['estado'];
 $fecha = $_POST['fecha'];
 $productos = $_POST['productos'];
@@ -110,7 +111,7 @@ try {
     // 2. Actualizar orden_venta
     $sql_venta = "UPDATE orden_venta SET ID_cliente = ?, estado = ?, total = ?, fecha = ? WHERE ID_orden_venta = ?";
     $stmt_venta = $conn->prepare($sql_venta);
-    $stmt_venta->bind_param("sisdi", $cliente, $estado, $total_general, $fecha, $id_orden);
+    $stmt_venta->bind_param("isdsi", $cliente, $estado, $total_general, $fecha, $id_orden);
     
     if (!$stmt_venta->execute()) {
         $stmt_venta->close();
@@ -178,6 +179,10 @@ try {
     
     // Commit de la transacción
     $conn->commit();
+    
+    $num_productos = count($productos_validos);
+    $total_formateado = number_format($total_general, 0);
+    registrar_cambio($conn, 'venta', 'editar', $id_orden, 'Venta #'.$id_orden.' editada - '.$num_productos.' productos - Total: $'.$total_formateado);
     mysqli_close($conn);
     
     $num_productos = count($productos_validos);

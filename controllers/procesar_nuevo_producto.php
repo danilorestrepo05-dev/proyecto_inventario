@@ -2,8 +2,9 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
-if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
+if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit();
 }
@@ -43,6 +44,8 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("sidss", $nombre, $cantidad, $precio, $descripcion, $fecha);
 
 if ($stmt->execute()) {
+    $id_producto = $conn->insert_id;
+    registrar_cambio($conn, 'producto', 'crear', $id_producto, 'Producto "' . $nombre . '" creado con stock ' . $cantidad);
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/productos.php?mensaje=Producto agregado correctamente");

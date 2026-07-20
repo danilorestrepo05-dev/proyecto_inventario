@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     echo "<script>alert('Acceso denegado'); window.location='../views/orden_compra.php';</script>";
@@ -110,7 +111,7 @@ try {
     // 2. Actualizar orden_compra
     $sql_orden = "UPDATE orden_compra SET ID_proveedor = ?, estado = ?, total = ?, fecha = ? WHERE ID_orden_compra = ?";
     $stmt_ord = $conn->prepare($sql_orden);
-    $stmt_ord->bind_param("sisdi", $proveedor, $estado, $total_general, $fecha, $id_orden);
+    $stmt_ord->bind_param("isdsi", $proveedor, $estado, $total_general, $fecha, $id_orden);
     
     if (!$stmt_ord->execute()) {
         $stmt_ord->close();
@@ -158,6 +159,10 @@ try {
     
     // Commit de la transacción
     $conn->commit();
+    
+    $num_productos = count($productos_validos);
+    $total_formateado = number_format($total_general, 0);
+    registrar_cambio($conn, 'orden_compra', 'editar', $id_orden, 'Orden #'.$id_orden.' editada - '.$num_productos.' productos - Total: $'.$total_formateado);
     mysqli_close($conn);
     
     $num_productos = count($productos_validos);

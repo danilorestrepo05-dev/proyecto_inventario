@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -24,6 +25,7 @@ $stmt = $conn->prepare($consulta);
 $stmt->bind_param("ssssi", $nombre, $correo, $telefono, $direccion, $codigo);
 
 if ($stmt->execute()) {
+    registrar_cambio($conn, 'proveedor', 'editar', $codigo, 'Proveedor "' . $nombre . '" editado');
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/proveedores.php?mensaje=Proveedor actualizado correctamente");

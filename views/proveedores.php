@@ -8,6 +8,17 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
+
+$mostrar_alerta = '';
+if (isset($_GET['mensaje'])) {
+    $mensaje = htmlspecialchars($_GET['mensaje']);
+    $mostrar_alerta = "
+        <div class='alert alert-success alert-dismissible fade show alert-flotante' role='alert'>
+            <i class='bi bi-check-circle-fill'></i> $mensaje
+        </div>
+    ";
+}
+
 $mostrar_inactivos = isset($_GET['inactivos']) && $_GET['inactivos'] == '1';
 
 $filtro = $mostrar_inactivos ? "" : "WHERE activo = 1";
@@ -29,6 +40,23 @@ $params_base = $mostrar_inactivos ? 'inactivos=1&' : '';
 $inactivos_param = $mostrar_inactivos ? '&inactivos=1' : '';
 ?>
 
+<script>
+setTimeout(function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        alert.style.transition = 'opacity 0.5s';
+        alert.style.opacity = '0';
+        setTimeout(function() {
+            alert.remove();
+            if (window.history.replaceState) {
+                const url = window.location.href.split('?')[0];
+                window.history.replaceState({}, document.title, url);
+            }
+        }, 500);
+    });
+}, 5000);
+</script>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -42,16 +70,15 @@ $inactivos_param = $mostrar_inactivos ? '&inactivos=1' : '';
 <body class="custom-body">
 
 <?php $nav_base = '..'; include('includes/navbar.php'); ?>
+<?php echo $mostrar_alerta; ?>
 
 <div class="container my-4">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
     <h2 class="mb-3 mb-md-0"><i class="bi bi-building me-2"></i>Gestión de proveedores</h2>
     <div class="d-flex flex-column flex-sm-row gap-2">
-      <?php if ($rol === 'Admin'): ?>
       <a href="agregar_proveedor.php" class="btn btn-primary rounded-pill">
         <i class="bi bi-plus-circle me-1"></i> Agregar proveedor
       </a>
-      <?php endif; ?>
     </div>
   </div>
 

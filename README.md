@@ -8,11 +8,14 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
 - **Módulo de Clientes y Proveedores** — Gestión con paginación server-side
 - **Módulo de Ventas** — Órdenes de venta con líneas dinámicas, cliente general opcional
 - **Módulo de Órdenes de Compra** — Órdenes con selección de proveedor y actualización automática de stock
+- **Módulo de Historial** — Registro de actividad con filtros por módulo, acción, usuario y fechas (Admin)
 - **Informes** — Filtros por fecha, estado, nombre y stock con paginación
 - **Exportación** — PDF (FPDF) y Excel (HTML .xls) para informes de ventas, compras y productos
 - **Dashboard** — Panel principal con cards de acceso rápido por módulo
-- **Control de roles** — Admin (CRUD completo) y Operario (solo lectura)
+- **Control de roles** — Admin (CRUD completo + historial + gestión usuarios) y Operario (lectura + agregar clientes/proveedores/productos)
 - **Seguridad** — Prepared statements, tokens CSRF, hash de contraseñas con `password_verify()`, headers anti-caché
+- **Soft Delete** — Activar/desactivar registros (clientes, proveedores, productos, usuarios) en lugar de eliminación física
+- **Borrador automático** — Formularios de ventas y órdenes guardan progreso en localStorage
 
 ## Stack Tecnológico
 
@@ -52,6 +55,7 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
    - `detalle_orden_venta`
    - `orden_compra`
    - `detalle_orden_compra`
+   - `historial_cambios`
 
 5. Acceder al sistema:
    ```
@@ -68,10 +72,11 @@ Proyecto_inventario/
 │   └── js/           → Bootstrap 5 + script.js (eye toggle, búsqueda)
 ├── config/
 │   ├── conexion.php  → Conexión MySQL
-│   └── csrf.php      → Helper CSRF (token, validate, field)
+│   ├── csrf.php      → Helper CSRF (token, validate, field)
+│   └── historial.php → Helper de registro de cambios
 ├── controllers/      → 22 archivos de lógica de negocio
 ├── fpdf/             → Librería FPDF para exportación PDF
-├── reports/          → Informes, detalle de ventas/compras, exportación
+├── reports/          → Informes, historial de cambios, detalle de ventas/compras, exportación
 ├── views/
 │   ├── includes/     → navbar.php (reutilizable)
 │   └── *.php         → Formularios CRUD y tablas con paginación
@@ -84,8 +89,8 @@ Proyecto_inventario/
 
 | Rol | Permisos |
 |-----|----------|
-| **Admin** | CRUD completo en todos los módulos, gestión de usuarios, exportación de reportes |
-| **Operario** | Solo lectura de tablas e informes |
+| **Admin** | CRUD completo en todos los módulos, gestión de usuarios, historial de cambios, exportación de reportes, activar/desactivar registros |
+| **Operario** | Lectura de tablas e informes, agregar clientes, proveedores y productos |
 
 ## Seguridad
 
@@ -101,7 +106,8 @@ Proyecto_inventario/
 1. Crear un usuario con rol **Admin** en la base de datos
 2. Iniciar sesión en `http://localhost/Proyecto_inventario/`
 3. Desde el dashboard, acceder a los módulos de gestión
-4. Los usuarios **Operario** solo verán las tablas e informes (sin botones de editar/eliminar)
+4. Los usuarios **Admin** tienen acceso completo al historial de cambios y gestión de usuarios
+5. Los usuarios **Operario** pueden ver tablas, informes y agregar clientes, proveedores y productos
 
 ## Licencia
 

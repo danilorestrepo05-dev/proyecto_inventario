@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 // Verificar que sea Admin
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("si", $clave_cifrada, $id_usuario);
     
     if ($stmt->execute()) {
+        registrar_cambio($conn, 'usuario', 'editar', $id_usuario, 'Contraseña del usuario actualizada');
         $stmt->close();
         mysqli_close($conn);
         header("Location: ../views/usuarios.php?mensaje=Contraseña actualizada correctamente");

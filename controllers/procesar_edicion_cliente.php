@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -24,6 +25,7 @@ $stmt = $conn->prepare($consulta);
 $stmt->bind_param("ssssi", $nombre, $apellido, $correo, $telefono, $codigo);
 
 if ($stmt->execute()) {
+    registrar_cambio($conn, 'cliente', 'editar', $codigo, 'Cliente "' . $nombre . ' ' . $apellido . '" editado');
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/clientes.php?mensaje=Cliente actualizado correctamente");

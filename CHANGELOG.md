@@ -597,3 +597,82 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 #### CSS: Logos sin distorsión horizontal
 - **`assets/css/estilos.css`**: `.login-center-logo` reducido a `90px` con `object-fit: contain`
 - **`assets/css/estilos.css`**: `.logo img` (dashboard) reducido a `80px` con `object-fit: contain`
+
+---
+
+### 20/07/2026 — Historial de cambios y borradores localStorage
+
+#### Nuevo: Tabla `historial_cambios` en la base de datos
+- Tabla con columnas: `ID_historial` (AUTO_INCREMENT PRIMARY KEY), `ID_usuario` (INT, FK → usuario), `modulo` (VARCHAR 50), `accion` (VARCHAR 50), `ID_registro` (INT), `descripcion` (TEXT), `fecha` (DATETIME DEFAULT CURRENT_TIMESTAMP)
+
+#### Nuevo: Helper de historial (`config/historial.php`)
+- Función `registrar_cambio($conn, $modulo, $accion, $ID_registro, $descripcion)` que inserta registros usando prepared statements
+
+#### Nuevo: Vista de historial (`reports/historial.php`)
+- Tabla con todos los registros de historial, paginados a 15 por página
+- Filtros: módulo, acción, usuario, rango de fechas
+- Badges de color por módulo (productos=primary, ventas=success, compras=warning, usuarios=info) y acción (crear=success, editar=warning, eliminar=danger)
+- Solo accesible para rol Admin
+
+#### Nuevo: Botón "Historial" en el navbar
+- **`views/includes/navbar.php`**: Nuevo enlace con icono `bi-clock-history`, visible solo para rol Admin
+
+#### Nuevo: `registrar_cambio()` en 19 controllers
+- Productos: crear, editar, activar/desactivar
+- Clientes: crear, editar, activar/desactivar
+- Proveedores: crear, editar, activar/desactivar
+- Usuarios: crear, editar, activar/desactivar, cambiar contraseña
+- Ventas: crear, editar, anular
+- Órdenes de compra: crear, editar, anular
+- Controllers de activar/desactivar detectan el estado previo para registrar "activar" o "desactivar" correctamente
+
+#### Nuevo: Borrador localStorage en formularios de ventas y órdenes
+- **`views/agregar_venta.php`**: Guarda/carga borrador con clave `svt_venta_draft`
+- **`views/editar_venta.php`**: Guarda/carga borrador con clave `svt_editar_venta_draft`
+- **`views/agregar_orden_compra.php`**: Guarda/carga borrador con clave `svt_orden_draft`
+- **`views/editar_orden.php`**: Guarda/carga borrador con clave `svt_editar_orden_draft`
+- Cada vista guarda cliente/proveedor, estado, fecha y productos en tiempo real
+- Al cargar la página, se pregunta si se desea restaurar el borrador existente
+- Al enviar el formulario con éxito, se limpia automáticamente el borrador
+- MutationObserver detecta nuevos productos para adjuntar listeners de guardado
+
+---
+
+### 20/07/2026 — Correcciones, historial funcional y permisos Operario
+
+#### Corregido: Foreign key constraint al guardar venta con "Cliente general"
+- **`controllers/procesar_nueva_venta.php`**: `$cliente` ahora se convierte de `0` a `NULL` (`intval() ?: null`) porque la foreign key `fk_cliente` acepta `NULL` pero no `0`
+- **`controllers/procesar_edicion_venta.php`**: Mismo fix para edición de ventas
+
+#### Corregido: bind_param con tipos invertidos en edición de ventas y órdenes
+- **`controllers/procesar_edicion_venta.php:114`**: Formato corregido de `"sisdi"` a `"isdsi"` — `$estado` (string) estaba en posición de integer, lo que lo convertía a `0` y MySQL lo guardaba como `NULL`
+- **`controllers/procesar_edicion_orden.php:114`**: Mismo fix — `"sisdi"` a `"isdsi"`
+
+#### Corregido: Historial no registraba cambios
+- **`controllers/procesar_login.php`**: Agregado `$_SESSION['id_usuario'] = $fila['ID_usuario']` — la sesión no guardaba el ID numérico del usuario, por lo que `registrar_cambio()` hacía `return` silenciosamente en `config/historial.php:3`
+
+#### Corregido: Typo "activarado" en descripción del historial
+- **`controllers/eliminar_producto.php:27`**: Corregido de `$nueva_accion . 'ado'` a ternario `($nueva_accion === 'activar' ? 'activado' : 'desactivado')`
+- **`controllers/eliminar_cliente.php:27`**: Mismo fix
+- **`controllers/eliminar_proveedor.php:27`**: Mismo fix
+- **`controllers/eliminar_usuario.php:27`**: Mismo fix
+
+#### Corregido: Badge morado sin color en historial
+- **`assets/css/estilos.css`**: Nueva clase `.bg-purple` con `background-color: #6f42c1` — Bootstrap 5 no incluye esta clase por defecto, necesaria para el badge del módulo "Ventas"
+
+#### Nuevo: Operario puede agregar clientes, proveedores y productos
+- **`controllers/procesar_nuevo_cliente.php`**: Validación cambiada de `$_SESSION['rol'] !== 'Admin'` a solo `!isset($_SESSION['usuario'])`
+- **`controllers/procesar_nuevo_proveedor.php`**: Mismo cambio
+- **`controllers/procesar_nuevo_producto.php`**: Mismo cambio
+- **`views/clientes.php`**: Botón "Agregar cliente" visible para todos los autenticados (eliminado `<?php if ($rol === 'Admin'): ?>`)
+- **`views/proveedores.php`**: Botón "Agregar proveedor" visible para todos
+- **`views/productos.php`**: Botón "Agregar producto" visible para todos
+
+#### Nuevo: Stock visible en formulario de agregar orden de compra
+- **`views/agregar_orden_compra.php:113`**: Opción del dropdown ahora muestra `Producto (Stock: ${p.stock})` igual que el formulario de ventas
+
+#### Actualizado: Alertas de confirmación debajo del navbar
+- **6 vistas** (`clientes.php`, `proveedores.php`, `usuarios.php`, `productos.php`, `ventas.php`, `orden_compra.php`): Alertas de éxito y error movidas de antes del navbar a después del navbar
+- Eliminado `position-fixed top-0 start-50 translate-middle-x` — alertas ahora fluyen en el documento con `mx-auto mt-3`
+- **`views/clientes.php`**: Agregado script de auto-dismiss (faltaba) + lectura de `$_GET['mensaje']`
+- **`views/proveedores.php`**: Agregado script de auto-dismiss (faltaba) + lectura de `$_GET['mensaje']`

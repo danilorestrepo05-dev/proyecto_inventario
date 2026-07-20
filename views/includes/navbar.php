@@ -70,6 +70,11 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
             <i class="bi bi-person-plus me-1"></i> Registro
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'historial.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/reports/historial.php">
+            <i class="bi bi-clock-history me-1"></i> Historial
+          </a>
+        </li>
         <?php endif; ?>
       </ul>
 

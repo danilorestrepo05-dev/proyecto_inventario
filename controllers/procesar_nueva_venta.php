@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -13,7 +14,7 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     exit();
 }
 
-$cliente = intval($_POST['cliente']);
+$cliente = intval($_POST['cliente']) ?: null;
 $estado = $_POST['estado'];
 $fecha = $_POST['fecha'];
 $productos = $_POST['productos'];
@@ -135,10 +136,12 @@ try {
     
     // Commit de la transacción
     $conn->commit();
-    mysqli_close($conn);
     
     $num_productos = count($productos_validos);
     $total_formateado = number_format($total_general, 0);
+    registrar_cambio($conn, 'venta', 'crear', $id_orden, 'Venta #'.$id_orden.' registrada con '.$num_productos.' productos - Total: $'.$total_formateado);
+    mysqli_close($conn);
+    
     header("Location: ../views/ventas.php?mensaje=Venta registrada correctamente. Productos: $num_productos - Total: $$total_formateado");
     exit;
     

@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -24,6 +25,7 @@ $stmt = $conn->prepare($consulta);
 $stmt->bind_param("ssssi", $nombre, $apellido, $correo, $rol, $codigo);
 
 if ($stmt->execute()) {
+    registrar_cambio($conn, 'usuario', 'editar', $codigo, 'Usuario "' . $nombre . ' ' . $apellido . '" editado');
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/usuarios.php?mensaje=Usuario actualizado correctamente");

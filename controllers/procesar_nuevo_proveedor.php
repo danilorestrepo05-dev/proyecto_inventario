@@ -2,8 +2,9 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
-if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
+if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit();
 }
@@ -23,6 +24,8 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("ssss", $nombre, $correo, $telefono, $direccion);
 
 if ($stmt->execute()) {
+    $id_proveedor = $conn->insert_id;
+    registrar_cambio($conn, 'proveedor', 'crear', $id_proveedor, 'Proveedor "' . $nombre . '" creado');
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/proveedores.php?mensaje=Proveedor agregado correctamente");

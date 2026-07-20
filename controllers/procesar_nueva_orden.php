@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -115,6 +116,10 @@ try {
     
     // Commit de la transacción
     $conn->commit();
+    
+    $num_productos = count($productos_validos);
+    $total_formateado = number_format($total_general, 0);
+    registrar_cambio($conn, 'orden_compra', 'crear', $id_orden, 'Orden #'.$id_orden.' registrada con '.$num_productos.' productos - Total: $'.$total_formateado);
     mysqli_close($conn);
     
     $num_productos = count($productos_validos);

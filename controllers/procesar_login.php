@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/rate_limit.php");
 
 if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     header("Location: ../index.php?error=Token CSRF inválido");
@@ -10,6 +11,15 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
 
 $documento = $_POST['documento'];
 $clave = $_POST['clave'];
+$ip = $_SERVER['REMOTE_ADDR'];
+
+// Verificar rate limiting
+$bloqueo = verificar_bloqueo($conn, $ip, $documento);
+if ($bloqueo !== true) {
+    $conn->close();
+    header("Location: ../index.php?error=" . urlencode($bloqueo));
+    exit();
+}
 
 // Consulta para obtener el usuario por documento
 $sql = "SELECT * FROM usuario WHERE documento = ?";
@@ -31,25 +41,26 @@ if ($resultado->num_rows === 1) {
     
     // Verificar la contraseña cifrada
     if (password_verify($clave, $fila['clave'])) {
-        // Contraseña correcta - Iniciar sesión
+        limpiar_intento($conn, $ip, $documento);
+
         $_SESSION['usuario'] = $documento;
+        $_SESSION['id_usuario'] = $fila['ID_usuario'];
         $_SESSION['rol'] = $fila['rol'];
         $_SESSION['nombre_completo'] = $fila['nombre'] . ' ' . $fila['apellido'];
         
-        // Regenerar token CSRF después de login
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         
         $conn->close();
         header("Location: ../menu.php?mensaje=Sesión iniciada exitosamente!");
         exit();
     } else {
-        // Contraseña incorrecta
+        registrar_intento_fallido($conn, $ip, $documento);
         $conn->close();
         header("Location: ../index.php?error=Usuario o contraseña incorrectos");
         exit();
     }
 } else {
-    // Usuario no encontrado
+    registrar_intento_fallido($conn, $ip, $documento);
     $conn->close();
     header("Location: ../index.php?error=Usuario o contraseña incorrectos");
     exit();

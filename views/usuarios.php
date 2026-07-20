@@ -11,7 +11,7 @@ $mostrar_alerta = '';
 if (isset($_GET['mensaje'])) {
     $mensaje = htmlspecialchars($_GET['mensaje']);
     $mostrar_alerta = "
-        <div class='alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3' style='z-index: 9999; width: auto;' role='alert'>
+        <div class='alert alert-success alert-dismissible fade show alert-flotante' role='alert'>
             <i class='bi bi-check-circle-fill'></i> $mensaje
         </div>
     ";
@@ -71,9 +71,9 @@ setTimeout(function() {
     <title>Gestión de usuarios</title>
 </head>
 <body class="custom-body">
-<?php echo $mostrar_alerta; ?>
 
 <?php $nav_base = '..'; include('includes/navbar.php'); ?>
+<?php echo $mostrar_alerta; ?>
 
 <div class="container my-4">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">

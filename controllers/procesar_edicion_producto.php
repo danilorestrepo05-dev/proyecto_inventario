@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -44,6 +45,7 @@ $stmt = $conn->prepare($consulta);
 $stmt->bind_param("sidssi", $nombre, $cantidad, $precio, $descripcion, $fecha, $codigo);
 
 if ($stmt->execute()) {
+    registrar_cambio($conn, 'producto', 'editar', $codigo, 'Producto "' . $nombre . '" editado');
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/productos.php?mensaje=Producto actualizado correctamente");

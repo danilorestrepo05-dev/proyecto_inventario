@@ -2,6 +2,7 @@
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
+include("../config/historial.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
     header("Location: ../index.php");
@@ -52,6 +53,8 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("ssssss", $nombre, $apellido, $documento, $correo, $clave_cifrada, $rol);
 
 if ($stmt->execute()) {
+    $id_usuario = $conn->insert_id;
+    registrar_cambio($conn, 'usuario', 'crear', $id_usuario, 'Usuario "' . $nombre . ' ' . $apellido . '" registrado como ' . $rol);
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../menu.php?mensaje=Usuario registrado correctamente.");
