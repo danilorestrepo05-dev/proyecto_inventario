@@ -435,3 +435,43 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 - `procesar_nuevo_cliente.php`: Agregada verificación Admin
 - `procesar_nuevo_producto.php`: Agregada verificación Admin
 - `procesar_nuevo_proveedor.php`: Agregada verificación Admin
+
+---
+
+### 19/07/2026 — Seguridad de sesión y mejoras en tablas
+
+#### Seguridad: Prevenir acceso post-logout con botón "atrás"
+- **`controllers/cerrar_sesion.php`**: Agregados headers `Cache-Control: no-cache, no-store, must-revalidate` y `Pragma: no-cache` antes de destruir la sesión
+- **`views/includes/navbar.php`**: Agregados los mismos headers anti-caché + listener JavaScript `pageshow` que detecta cuando el navegador carga la página desde caché (bfcache) y redirige al login
+- Todas las páginas autenticadas ahora envían headers anti-caché al incluir `navbar.php`
+
+#### Tablas: Columna ID uniforme en todos los módulos
+- **`assets/css/estilos.css`**: Nueva regla `.tabla-usuarios th:first-child` / `td:first-child` con `width: 80px`, `min-width: 80px` y `white-space: nowrap`
+- La columna ID/Código mantiene el mismo ancho base en todas las tablas (productos, clientes, proveedores, ventas, órdenes de compra, usuarios)
+- Si un ID supera 4 cifras, la celda crece automáticamente sin cortarse (`table-layout: auto`)
+
+#### Tablas: Auto-ajuste de contenido y columna Opciones compacta
+- **`assets/css/estilos.css`**: `table-layout: auto` para que las columnas se ajusten al contenido
+- Nuevas clases `th-opciones` y `td-opciones` con `width: 1%` y `white-space: nowrap` para que la columna de acciones no ocupe espacio innecesario
+- Celdas de contenido usan `white-space: normal` para permitir salto de línea en texto largo
+
+#### Tablas: Columna Opciones oculta para rol Operario
+- **5 vistas** (`productos.php`, `clientes.php`, `proveedores.php`, `ventas.php`, `orden_compra.php`): La columna Opciones solo se renderiza cuando `$_SESSION['rol'] === 'Admin'`
+- El colspan de la fila "Sin datos aún" se ajusta dinámicamente según el rol
+- Eliminado el texto "Sin permisos" de todas las vistas (ya no se muestra la columna completa)
+
+#### Corregido: CSRF token en enlaces de eliminación
+- **`views/productos.php`**: Corregido `csrf_token` que estaba escapes incorrectamente dentro de `echo` (usaba `<?php echo csrf_token(); ?>` en su lugar de `" . csrf_token() . "`)
+
+#### Nuevo: Archivo `.gitignore`
+- Excluye archivos del sistema (`Thumbs.db`, `.DS_Store`), IDE (`.vscode/`, `.idea/`), respaldos (`.zip`, `.bak`), y configuración de herramientas AI (`opencode.json`, `AGENTS.md`)
+- Excepción para `fpdf/fpdf186.zip` (librería necesaria)
+
+#### Nuevo: Archivo `README.md`
+- Documentación completa para GitHub: descripción, features, stack, requisitos, instalación, estructura, roles, seguridad y uso
+
+#### Configuración Git/GitHub
+- Configurado remote `origin` → `https://github.com/danilorestrepo05-dev/proyecto_inventario.git`
+- Git user.name: `danilorestrepo05-dev`
+- Git user.email: `danilorestrepo05@gmail.com`
+- Credential helper: `manager` (Windows Credential Manager)
