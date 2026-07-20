@@ -1,6 +1,6 @@
 # SGI - Sistema de Gestión de Inventarios
 
-Sistema web para el monitoreo de existencias, compras, ventas y reportes con control de acceso por roles.
+Sistema web para el monitoreo de existencias, compras, ventas y reportes con control de acceso por roles. Desarrollado con PHP 8.x, MySQL y Bootstrap 5.
 
 ## Características
 
