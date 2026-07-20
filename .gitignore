@@ -16,6 +16,7 @@ Desktop.ini
 *.bak
 *.tmp
 !fpdf/fpdf186.zip
+backup_*/
 
 # Archivos de IDE
 .vscode/
