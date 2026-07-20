@@ -11,10 +11,10 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
 $codigo = intval($_REQUEST['id']);
 
 // Consulta clientes
-$resultado_cli = $conn->query("SELECT * FROM cliente ORDER BY nombre");
+$resultado_cli = $conn->query("SELECT * FROM cliente WHERE activo = 1 ORDER BY nombre");
 
 // Consulta productos disponibles
-$resultado_prod = $conn->query("SELECT * FROM producto ORDER BY nombre");
+$resultado_prod = $conn->query("SELECT * FROM producto WHERE activo = 1 ORDER BY nombre");
 
 // Consulta venta principal
 $sql_venta = "SELECT * FROM orden_venta WHERE ID_orden_venta = ?";

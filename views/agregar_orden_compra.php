@@ -8,8 +8,8 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 
-$proveedores = $conn->query("SELECT * FROM proveedor");
-$productos = $conn->query("SELECT * FROM producto");
+$proveedores = $conn->query("SELECT * FROM proveedor WHERE activo = 1");
+$productos = $conn->query("SELECT * FROM producto WHERE activo = 1");
 ?>
 
 <!DOCTYPE html>

@@ -7,8 +7,8 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
-$clientes = $conn->query("SELECT * FROM cliente");
-$productos = $conn->query("SELECT * FROM producto");
+$clientes = $conn->query("SELECT * FROM cliente WHERE activo = 1");
+$productos = $conn->query("SELECT * FROM producto WHERE activo = 1");
 ?>
 
 <!DOCTYPE html>
