@@ -21,6 +21,13 @@ $stmt->close();
 
 if ($resultado->num_rows === 1) {
     $fila = $resultado->fetch_assoc();
+
+    // Verificar si el usuario está activo
+    if (!$fila['activo']) {
+        $conn->close();
+        header("Location: ../index.php?error=Tu cuenta está desactivada. Contacta al administrador.");
+        exit();
+    }
     
     // Verificar la contraseña cifrada
     if (password_verify($clave, $fila['clave'])) {
