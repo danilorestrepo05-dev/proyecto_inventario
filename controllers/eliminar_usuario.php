@@ -14,6 +14,7 @@ if (!csrf_validate($_GET['csrf_token'] ?? '')) {
 }
 
 $codigo = intval($_REQUEST['id']);
+$inactivos = isset($_GET['inactivos']) ? '&inactivos=1' : '';
 
 $sql = "UPDATE usuario SET activo = NOT activo WHERE ID_usuario = ?";
 $stmt = $conn->prepare($sql);
@@ -22,7 +23,7 @@ $stmt->bind_param("i", $codigo);
 if ($stmt->execute()) {
     $stmt->close();
     mysqli_close($conn);
-    header("Location: ../views/usuarios.php?mensaje=Estado del usuario actualizado");
+    header("Location: ../views/usuarios.php?mensaje=Estado del usuario actualizado$inactivos");
     exit();
 } else {
     echo "Error al cambiar estado del usuario: " . $conn->error;

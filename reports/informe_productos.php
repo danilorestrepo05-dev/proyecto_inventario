@@ -11,6 +11,7 @@ $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 // Filtros
 $filtro_nombre = isset($_GET['nombre']) ? $_GET['nombre'] : '';
 $filtro_stock = isset($_GET['stock']) ? $_GET['stock'] : '';
+$filtro_estado = isset($_GET['estado']) ? $_GET['estado'] : '';
 
 // Construir consulta con filtros
 $sql = "SELECT p.*, pr.nombre_proveedor 
@@ -30,6 +31,12 @@ if ($filtro_stock == 'bajo') {
     $sql .= " AND p.stock > 50";
 }
 
+if ($filtro_estado == 'activo') {
+    $sql .= " AND p.activo = 1";
+} elseif ($filtro_estado == 'inactivo') {
+    $sql .= " AND p.activo = 0";
+}
+
 $sql .= " ORDER BY p.ID_producto DESC";
 $result = mysqli_query($conn, $sql);
 
@@ -43,6 +50,12 @@ $inicio = ($pagina_actual - 1) * $por_pagina;
 // Re-consultar con LIMIT
 $sql_paginada = $sql . " LIMIT $inicio, $por_pagina";
 $result = mysqli_query($conn, $sql_paginada);
+
+// Parámetros para paginación
+$params_paginacion = '';
+if (!empty($filtro_nombre)) $params_paginacion .= '&nombre=' . urlencode($filtro_nombre);
+if (!empty($filtro_stock)) $params_paginacion .= '&stock=' . urlencode($filtro_stock);
+if (!empty($filtro_estado)) $params_paginacion .= '&estado=' . urlencode($filtro_estado);
 ?>
 
 <!DOCTYPE html>
@@ -70,17 +83,25 @@ $result = mysqli_query($conn, $sql_paginada);
             <div class="card-body">
                 <h5 class="card-title mb-3">Filtros de Búsqueda</h5>
                 <form method="GET" action="" class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label">Nombre del Producto</label>
                         <input type="text" class="form-control" name="nombre" value="<?php echo htmlspecialchars($filtro_nombre); ?>" placeholder="Buscar por nombre...">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Nivel de Stock</label>
                         <select class="form-select" name="stock">
                             <option value="">Todos</option>
-                            <option value="bajo" <?php echo $filtro_stock == 'bajo' ? 'selected' : ''; ?>>Bajo (< 10)</option>
+                            <option value="bajo" <?php echo $filtro_stock == 'bajo' ? 'selected' : ''; ?>>Bajo (&lt; 10)</option>
                             <option value="medio" <?php echo $filtro_stock == 'medio' ? 'selected' : ''; ?>>Medio (10-50)</option>
-                            <option value="alto" <?php echo $filtro_stock == 'alto' ? 'selected' : ''; ?>>Alto (> 50)</option>
+                            <option value="alto" <?php echo $filtro_stock == 'alto' ? 'selected' : ''; ?>>Alto (&gt; 50)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" name="estado">
+                            <option value="">Todos</option>
+                            <option value="activo" <?php echo $filtro_estado == 'activo' ? 'selected' : ''; ?>>Activos</option>
+                            <option value="inactivo" <?php echo $filtro_estado == 'inactivo' ? 'selected' : ''; ?>>Inactivos</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -99,6 +120,7 @@ $result = mysqli_query($conn, $sql_paginada);
                 <input type="hidden" name="tipo" value="productos">
                 <input type="hidden" name="nombre" value="<?php echo htmlspecialchars($filtro_nombre); ?>">
                 <input type="hidden" name="stock" value="<?php echo htmlspecialchars($filtro_stock); ?>">
+                <input type="hidden" name="estado" value="<?php echo htmlspecialchars($filtro_estado); ?>">
                 <button type="submit" class="btn btn-danger">
                     <i class="bi bi-file-pdf"></i> Exportar PDF
                 </button>
@@ -108,6 +130,7 @@ $result = mysqli_query($conn, $sql_paginada);
                 <input type="hidden" name="tipo" value="productos">
                 <input type="hidden" name="nombre" value="<?php echo htmlspecialchars($filtro_nombre); ?>">
                 <input type="hidden" name="stock" value="<?php echo htmlspecialchars($filtro_stock); ?>">
+                <input type="hidden" name="estado" value="<?php echo htmlspecialchars($filtro_estado); ?>">
                 <button type="submit" class="btn btn-success">
                     <i class="bi bi-file-excel"></i> Exportar Excel
                 </button>
@@ -127,7 +150,7 @@ $result = mysqli_query($conn, $sql_paginada);
                                 <th>Descripción</th>
                                 <th>Stock</th>
                                 <th>Precio</th>
-                                
+                                <th>Estado</th>
                                 <th>Fecha Registro</th>
                             </tr>
                         </thead>
@@ -148,14 +171,20 @@ $result = mysqli_query($conn, $sql_paginada);
                                     } elseif ($row['stock'] < 50) {
                                         $clase_stock = 'text-warning fw-bold';
                                     }
+
+                                    $badge_estado = $row['activo'] 
+                                        ? '<span class="badge bg-success">Activo</span>' 
+                                        : '<span class="badge bg-secondary">Inactivo</span>';
                                     
-                                    echo "<tr>";
+                                    $clase_fila = !$row['activo'] ? 'table-secondary' : '';
+                                    
+                                    echo "<tr class='$clase_fila'>";
                                     echo "<td>" . $row['ID_producto'] . "</td>";
                                     echo "<td>" . htmlspecialchars($row['nombre']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['descripcion']) . "</td>";
                                     echo "<td class='$clase_stock'>" . $row['stock'] . "</td>";
                                     echo "<td>$" . number_format($row['precio'], 0, ',', '.') . "</td>";
-                                    
+                                    echo "<td>$badge_estado</td>";
                                     echo "<td>" . date('d/m/Y', strtotime($row['fecha'])) . "</td>";
                                     echo "</tr>";
                                 }
@@ -177,17 +206,17 @@ $result = mysqli_query($conn, $sql_paginada);
                         <nav aria-label="Paginación">
                             <ul class="pagination mb-0">
                                 <li class="page-item <?php echo $pagina_actual <= 1 ? 'disabled' : ''; ?>">
-                                    <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?><?php echo !empty($filtro_nombre) ? '&nombre='.htmlspecialchars($filtro_nombre) : ''; ?><?php echo !empty($filtro_stock) ? '&stock='.htmlspecialchars($filtro_stock) : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?><?php echo $params_paginacion; ?>">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
                                 <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
                                 <li class="page-item <?php echo $i === $pagina_actual ? 'active' : ''; ?>">
-                                    <a class="page-link" href="?pagina=<?php echo $i; ?><?php echo !empty($filtro_nombre) ? '&nombre='.htmlspecialchars($filtro_nombre) : ''; ?><?php echo !empty($filtro_stock) ? '&stock='.htmlspecialchars($filtro_stock) : ''; ?>"><?php echo $i; ?></a>
+                                    <a class="page-link" href="?pagina=<?php echo $i; ?><?php echo $params_paginacion; ?>"><?php echo $i; ?></a>
                                 </li>
                                 <?php endfor; ?>
                                 <li class="page-item <?php echo $pagina_actual >= $total_paginas ? 'disabled' : ''; ?>">
-                                    <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?><?php echo !empty($filtro_nombre) ? '&nombre='.htmlspecialchars($filtro_nombre) : ''; ?><?php echo !empty($filtro_stock) ? '&stock='.htmlspecialchars($filtro_stock) : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?><?php echo $params_paginacion; ?>">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>

@@ -40,6 +40,7 @@ $consulta_paginada = $consulta . " LIMIT $inicio, $por_pagina";
 $resultado_paginado = $conn->query($consulta_paginada);
 
 $params_base = $mostrar_inactivos ? 'inactivos=1&' : '';
+$inactivos_param = $mostrar_inactivos ? '&inactivos=1' : '';
 ?>
 
 <script>
@@ -85,7 +86,7 @@ setTimeout(function() {
   </div>
 
   <div class="d-flex flex-column flex-sm-row gap-3 mb-3 align-items-stretch align-items-sm-center">
-    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill" style="flex:1;">
+    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill" style="max-width: 300px;">
     <a href="?<?php echo $mostrar_inactivos ? '' : 'inactivos=1'; ?>" class="btn btn-sm <?php echo $mostrar_inactivos ? 'btn-outline-secondary' : 'btn-outline-dark'; ?> rounded-pill whitespace-nowrap">
       <i class="bi bi-eye<?php echo $mostrar_inactivos ? '-slash' : ''; ?> me-1"></i>
       <?php echo $mostrar_inactivos ? 'Ocultar inactivos' : 'Mostrar inactivos'; ?>
@@ -122,7 +123,7 @@ setTimeout(function() {
               $icono_toggle = $es_inactivo ? 'bi-arrow-counterclockwise' : 'bi-toggle-on';
               $clase_toggle = $es_inactivo ? 'btn-success' : 'btn-outline-danger';
               $titulo_toggle = $es_inactivo ? 'Restaurar' : 'Desactivar';
-              echo "<a href='../controllers/eliminar_usuario.php?id={$fila['ID_usuario']}&csrf_token=" . csrf_token() . "' class='btn btn-sm $clase_toggle' title='$titulo_toggle'><i class='bi $icono_toggle'></i></a> ";
+              echo "<a href='../controllers/eliminar_usuario.php?id={$fila['ID_usuario']}&csrf_token=" . csrf_token() . "$inactivos_param' class='btn btn-sm $clase_toggle' title='$titulo_toggle'><i class='bi $icono_toggle'></i></a> ";
               echo "<a href='recuperar_clave.php?id={$fila['ID_usuario']}' class='btn btn-sm btn-info'><i class='bi bi-key'></i></a>";
             echo "</td>";
             echo "</tr>";

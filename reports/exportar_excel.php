@@ -44,6 +44,7 @@ if ($tipo == 'productos') {
 
     $filtro_nombre = isset($_POST['nombre']) ? $_POST['nombre'] : '';
     $filtro_stock = isset($_POST['stock']) ? $_POST['stock'] : '';
+    $filtro_estado = isset($_POST['estado']) ? $_POST['estado'] : '';
 
     $sql = "SELECT p.*, pr.nombre_proveedor
             FROM producto p
@@ -61,8 +62,22 @@ if ($tipo == 'productos') {
         $sql .= " AND p.stock > 50";
     }
 
+    if ($filtro_estado == 'activo') {
+        $sql .= " AND p.activo = 1";
+    } elseif ($filtro_estado == 'inactivo') {
+        $sql .= " AND p.activo = 0";
+    }
+
     $sql .= " ORDER BY p.ID_producto DESC";
     $result = mysqli_query($conn, $sql);
+
+    if (!empty($filtro_nombre) || !empty($filtro_stock) || !empty($filtro_estado)) {
+        echo "<p><strong>Filtros aplicados:</strong> ";
+        if ($filtro_nombre) echo "Nombre: " . htmlspecialchars($filtro_nombre) . " ";
+        if ($filtro_stock) echo "Stock: " . htmlspecialchars($filtro_stock) . " ";
+        if ($filtro_estado) echo "Estado: " . ($filtro_estado == 'activo' ? 'Activos' : 'Inactivos');
+        echo "</p>";
+    }
 
     echo "<table border='1' cellpadding='0' cellspacing='0'>";
     echo "<tr>";
@@ -71,6 +86,7 @@ if ($tipo == 'productos') {
     echo "<td class='header'>Descripci&oacute;n</td>";
     echo "<td class='header'>Stock</td>";
     echo "<td class='header'>Precio</td>";
+    echo "<td class='header'>Estado</td>";
     echo "<td class='header'>Proveedor</td>";
     echo "<td class='header'>Fecha Registro</td>";
     echo "</tr>";
@@ -81,6 +97,7 @@ if ($tipo == 'productos') {
     while ($row = mysqli_fetch_assoc($result)) {
         $total_productos++;
         $valor_inventario += $row['stock'] * $row['precio'];
+        $estado_texto = $row['activo'] ? 'Activo' : 'Inactivo';
 
         echo "<tr>";
         echo "<td class='data' style='text-align:center'>" . intval($row['ID_producto']) . "</td>";
@@ -88,6 +105,7 @@ if ($tipo == 'productos') {
         echo "<td class='data'>" . htmlspecialchars($row['descripcion']) . "</td>";
         echo "<td class='data' style='text-align:center'>" . intval($row['stock']) . "</td>";
         echo "<td class='data' style='text-align:right'>$" . number_format($row['precio'], 0, ',', '.') . "</td>";
+        echo "<td class='data' style='text-align:center'>" . $estado_texto . "</td>";
         echo "<td class='data'>" . htmlspecialchars($row['nombre_proveedor'] ?? '') . "</td>";
         echo "<td class='data' style='text-align:center'>" . date('d/m/Y', strtotime($row['fecha'])) . "</td>";
         echo "</tr>";
@@ -96,7 +114,7 @@ if ($tipo == 'productos') {
     echo "<tr>";
     echo "<td class='total' colspan='3' style='text-align:right'>TOTALES:</td>";
     echo "<td class='total' style='text-align:center'>" . $total_productos . " productos</td>";
-    echo "<td class='total' colspan='3' style='text-align:right'>Valor Inventario: $" . number_format($valor_inventario, 0, ',', '.') . "</td>";
+    echo "<td class='total' colspan='4' style='text-align:right'>Valor Inventario: $" . number_format($valor_inventario, 0, ',', '.') . "</td>";
     echo "</tr>";
     echo "</table></body></html>";
 }

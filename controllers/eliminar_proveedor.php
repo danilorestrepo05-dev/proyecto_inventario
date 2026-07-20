@@ -14,6 +14,7 @@ if (!csrf_validate($_GET['csrf_token'] ?? '')) {
 }
 
 $codigo = intval($_REQUEST['id']);
+$inactivos = isset($_GET['inactivos']) ? '&inactivos=1' : '';
 
 $sql = "UPDATE proveedor SET activo = NOT activo WHERE ID_proveedor = ?";
 $stmt = $conn->prepare($sql);
@@ -22,7 +23,7 @@ $stmt->bind_param("i", $codigo);
 if ($stmt->execute()) {
     $stmt->close();
     mysqli_close($conn);
-    header("Location: ../views/proveedores.php?mensaje=Estado del proveedor actualizado");
+    header("Location: ../views/proveedores.php?mensaje=Estado del proveedor actualizado$inactivos");
     exit();
 } else {
     echo "Error al cambiar estado del proveedor: " . $conn->error;

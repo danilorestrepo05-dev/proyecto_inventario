@@ -51,6 +51,7 @@ if ($tipo == 'productos') {
     
     $filtro_nombre = isset($_POST['nombre']) ? $_POST['nombre'] : '';
     $filtro_stock = isset($_POST['stock']) ? $_POST['stock'] : '';
+    $filtro_estado = isset($_POST['estado']) ? $_POST['estado'] : '';
     
     $sql = "SELECT p.*, pr.nombre_proveedor 
             FROM producto p 
@@ -68,18 +69,35 @@ if ($tipo == 'productos') {
     } elseif ($filtro_stock == 'alto') {
         $sql .= " AND p.stock > 50";
     }
+
+    if ($filtro_estado == 'activo') {
+        $sql .= " AND p.activo = 1";
+    } elseif ($filtro_estado == 'inactivo') {
+        $sql .= " AND p.activo = 0";
+    }
     
     $sql .= " ORDER BY p.ID_producto DESC";
     $result = mysqli_query($conn, $sql);
+    
+    // Filtros aplicados
+    if (!empty($filtro_nombre) || !empty($filtro_stock) || !empty($filtro_estado)) {
+        $pdf->SetFont('Arial', 'I', 9);
+        $pdf->Cell(0, 5, 'Filtros: ' .
+            ($filtro_nombre ? 'Nombre: ' . $filtro_nombre . ' ' : '') .
+            ($filtro_stock ? 'Stock: ' . $filtro_stock . ' ' : '') .
+            ($filtro_estado ? 'Estado: ' . ($filtro_estado == 'activo' ? 'Activos' : 'Inactivos') : ''), 0, 1);
+        $pdf->Ln(3);
+    }
     
     // Encabezados
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->SetFillColor(200, 220, 255);
     $pdf->Cell(15, 7, 'ID', 1, 0, 'C', true);
-    $pdf->Cell(60, 7, 'Nombre', 1, 0, 'C', true);
-    $pdf->Cell(25, 7, 'Stock', 1, 0, 'C', true);
-    $pdf->Cell(35, 7, 'Precio unitario', 1, 0, 'C', true);
-    $pdf->Cell(30, 7, 'Fecha', 1, 1, 'C', true);
+    $pdf->Cell(55, 7, 'Nombre', 1, 0, 'C', true);
+    $pdf->Cell(20, 7, 'Stock', 1, 0, 'C', true);
+    $pdf->Cell(30, 7, 'Precio unitario', 1, 0, 'C', true);
+    $pdf->Cell(25, 7, 'Estado', 1, 0, 'C', true);
+    $pdf->Cell(25, 7, 'Fecha', 1, 1, 'C', true);
     
     // Datos
     $pdf->SetFont('Arial', '', 10);
@@ -92,11 +110,14 @@ if ($tipo == 'productos') {
         $stock_total += $row['stock'];
         $valor_inventario += $row['stock'] * $row['precio'];
         
+        $estado_texto = $row['activo'] ? 'Activo' : 'Inactivo';
+        
         $pdf->Cell(15, 6, $row['ID_producto'], 1, 0, 'C');
-        $pdf->Cell(60, 6, utf8_decode(substr($row['nombre'], 0, 30)), 1, 0, 'L');
-        $pdf->Cell(25, 6, $row['stock'], 1, 0, 'C');
-        $pdf->Cell(35, 6, '$' . number_format($row['precio'], 0, ',', '.'), 1, 0, 'R');
-        $pdf->Cell(30, 6, date('d/m/Y', strtotime($row['fecha'])), 1, 1, 'C');
+        $pdf->Cell(55, 6, utf8_decode(substr($row['nombre'], 0, 28)), 1, 0, 'L');
+        $pdf->Cell(20, 6, $row['stock'], 1, 0, 'C');
+        $pdf->Cell(30, 6, '$' . number_format($row['precio'], 0, ',', '.'), 1, 0, 'R');
+        $pdf->Cell(25, 6, utf8_decode($estado_texto), 1, 0, 'C');
+        $pdf->Cell(25, 6, date('d/m/Y', strtotime($row['fecha'])), 1, 1, 'C');
     }
     
     // Totales
