@@ -500,5 +500,28 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 - Solo visible para rol Admin
 - Preserva el estado del filtro al paginar
 
-#### Backup
-- **`backup_19_07/`**: Carpeta con backup de los 8 archivos originales antes del cambio a soft delete
+---
+
+### 19/07/2026 — Mejoras UX, seguridad de login y reportes
+
+#### Seguridad: Bloquear login de usuarios inactivos
+- **`controllers/procesar_login.php`**: Agregada verificación `activo` antes de autenticar. Si el usuario está desactivado muestra "Tu cuenta está desactivada. Contacta al administrador."
+
+#### Tablas: Barra de búsqueda compacta
+- **4 vistas** (`clientes.php`, `proveedores.php`, `productos.php`, `usuarios.php`): Input de búsqueda cambiado de `flex:1` a `max-width: 300px`
+
+#### Tablas: Preservar filtro inactivos al activar/desactivar
+- **4 vistas**: Enlace de toggle ahora incluye `&inactivos=1` cuando se están mostrando inactivos
+- **4 controllers** (`eliminar_cliente/producto/proveedor/usuario.php`): Redirect ahora preserva el parámetro `inactivos` en la URL
+
+#### Tablas: Filtros en dropdowns de formularios
+- **`views/agregar_venta.php`**: Queries de clientes y productos filtran `WHERE activo = 1`
+- **`views/editar_venta.php`**: Queries de clientes y productos filtran `WHERE activo = 1`
+- **`views/agregar_orden_compra.php`**: Queries de proveedores y productos filtran `WHERE activo = 1`
+- **`views/editar_orden.php`**: Queries de proveedores y productos filtran `WHERE activo = 1`
+
+#### Informes: Columna Estado en informe de productos
+- **`reports/informe_productos.php`**: Nueva columna "Estado" con badge "Activo" (verde) / "Inactivo" (gris), filas inactivas en `table-secondary`
+- **`reports/informe_productos.php`**: Nuevo filtro "Estado" (Todos / Activos / Inactivos) en formulario de filtros
+- **`reports/exportar_pdf.php`**: Filtro de estado aplicado + columna "Estado" en PDF de productos
+- **`reports/exportar_excel.php`**: Filtro de estado aplicado + columna "Estado" en Excel de productos
