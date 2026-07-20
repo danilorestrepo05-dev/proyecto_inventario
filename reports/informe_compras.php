@@ -31,7 +31,7 @@ if (!empty($estado)) {
     $sql .= " AND oc.estado = '" . mysqli_real_escape_string($conn, $estado) . "'";
 }
 
-$sql .= " ORDER BY oc.fecha DESC";
+$sql .= " ORDER BY oc.ID_orden_compra DESC";
 $result = mysqli_query($conn, $sql);
 
 // Paginación
@@ -126,7 +126,7 @@ $result = mysqli_query($conn, $sql_paginada);
             <div class="card-body">
                 <h5 class="card-title mb-3">Listado de Compras</h5>
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover informe-table">
                         <thead class="table-warning">
                             <tr>
                                 <th>ID Orden</th>

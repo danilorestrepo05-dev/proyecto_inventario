@@ -83,8 +83,8 @@ setTimeout(function() {
     </div>
   </div>
 
-  <div class="d-flex flex-column flex-sm-row gap-3 mb-3 align-items-stretch align-items-sm-center">
-    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill" style="max-width: 300px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control rounded-pill" style="max-width: 300px;">
     <?php if ($rol === 'Admin'): ?>
     <a href="?<?php echo $mostrar_inactivos ? '' : 'inactivos=1'; ?>" class="btn btn-sm <?php echo $mostrar_inactivos ? 'btn-outline-secondary' : 'btn-outline-dark'; ?> rounded-pill whitespace-nowrap">
       <i class="bi bi-eye<?php echo $mostrar_inactivos ? '-slash' : ''; ?> me-1"></i>
@@ -94,8 +94,8 @@ setTimeout(function() {
   </div>
 
   <div class="table-responsive">
-    <table class="table table-striped table-bordered align-middle tabla-usuarios">
-      <thead class="table-dark">
+    <table class="table table-hover align-middle">
+      <thead class="table-primary">
         <tr>
           <th>Código</th>
           <th>Nombre</th>

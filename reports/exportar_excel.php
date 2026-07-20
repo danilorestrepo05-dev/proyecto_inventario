@@ -159,7 +159,7 @@ elseif ($tipo == 'ventas') {
         $sql .= " AND ov.estado = '" . mysqli_real_escape_string($conn, $estado) . "'";
     }
 
-    $sql .= " ORDER BY ov.fecha DESC";
+    $sql .= " ORDER BY ov.ID_orden_venta DESC";
     $result = mysqli_query($conn, $sql);
 
     echo "<table border='1' cellpadding='0' cellspacing='0'>";
@@ -234,7 +234,7 @@ elseif ($tipo == 'compras') {
         $sql .= " AND oc.estado = '" . mysqli_real_escape_string($conn, $estado) . "'";
     }
 
-    $sql .= " ORDER BY oc.fecha DESC";
+    $sql .= " ORDER BY oc.ID_orden_compra DESC";
     $result = mysqli_query($conn, $sql);
 
     echo "<table border='1' cellpadding='0' cellspacing='0'>";

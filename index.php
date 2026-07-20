@@ -31,54 +31,56 @@ if (isset($_SESSION['usuario'])) {
 
     <div class="login-wrapper">
         <div class="card login-card shadow-lg border-0">
-            <div class="card-body p-4">
-                <div class="text-center mb-3">
+            <div class="card-body p-3 p-md-4">
+                <div class="text-center mb-2">
                     <img src="assets/img/sgi-software (1).png" alt="SGI" class="login-center-logo mb-2">
-                    <h4 class="fw-bold text-dark">Bienvenido</h4>
+                    <h5 class="fw-bold text-dark">Bienvenido</h5>
                     <p class="text-muted small mb-0">Inicia sesión para continuar</p>
                 </div>
 
                 <?php if (isset($_GET['error'])): ?>
-                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center py-2" role="alert">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <?php echo htmlspecialchars($_GET['error']); ?>
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                     </div>
                 <?php endif; ?>
 
                 <?php if (isset($_GET['mensaje'])): ?>
-                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center py-2" role="alert">
                         <i class="bi bi-check-circle-fill me-2"></i>
                         <?php echo htmlspecialchars($_GET['mensaje']); ?>
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                     </div>
                 <?php endif; ?>
 
                 <form action="controllers/procesar_login.php" method="POST">
                     <?php echo csrf_field(); ?>
-                    <div class="mb-3">
-                        <label for="documento" class="form-label fw-semibold">
+                    <div class="mb-2">
+                        <label for="documento" class="form-label fw-semibold small">
                             <i class="bi bi-person me-1"></i> Documento
                         </label>
-                        <input type="text" name="documento" id="documento" class="form-control form-control-lg login-input" placeholder="Ingrese su documento" required>
+                        <input type="text" name="documento" id="documento" class="form-control login-input" placeholder="Ingrese su documento" required>
                     </div>
 
-                    <div class="mb-4">
-                        <label for="password" class="form-label fw-semibold">
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-semibold small">
                             <i class="bi bi-lock me-1"></i> Contraseña
                         </label>
                         <div class="input-group">
-                            <input type="password" name="clave" id="password" class="form-control form-control-lg login-input" placeholder="Ingrese su contraseña" required>
+                            <input type="password" name="clave" id="password" class="form-control login-input" placeholder="Ingrese su contraseña" required>
                             <span class="input-group-text login-input login-eye" onclick="mostrarContrasena()">
                                 <i class="bi bi-eye" id="eyeIcon"></i>
                             </span>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100 login-btn">
+                    <button type="submit" class="btn btn-primary w-100 login-btn py-2">
                         <i class="bi bi-box-arrow-in-right me-2"></i> Iniciar sesión
                     </button>
                 </form>
 
-                <div class="text-center mt-4">
+                <div class="text-center mt-3">
                     <small class="text-muted">
                         <i class="bi bi-shield-lock me-1"></i> Acceso restringido a usuarios autorizados
                     </small>

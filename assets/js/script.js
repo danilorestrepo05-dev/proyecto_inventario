@@ -18,7 +18,7 @@ function mostrarContrasena() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const inputBusqueda = document.getElementById("busqueda");
-    const filas = document.querySelectorAll(".tabla-usuarios tbody tr");
+    const filas = document.querySelectorAll("table tbody tr");
 
     if (inputBusqueda) {
         inputBusqueda.addEventListener("keyup", function () {

@@ -27,14 +27,21 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
             <i class="bi bi-house-door me-1"></i> Inicio
           </a>
         </li>
+        <?php if ($rol_nav === 'Admin'): ?>
         <li class="nav-item">
-          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'clientes.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/clientes.php">
-            <i class="bi bi-people me-1"></i> Clientes
+          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'usuarios.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/usuarios.php">
+            <i class="bi bi-person-gear me-1"></i> Usuarios
           </a>
         </li>
+        <?php endif; ?>
         <li class="nav-item">
           <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'proveedores.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/proveedores.php">
             <i class="bi bi-building me-1"></i> Proveedores
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'clientes.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/clientes.php">
+            <i class="bi bi-people me-1"></i> Clientes
           </a>
         </li>
         <li class="nav-item">
@@ -43,13 +50,13 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'ventas.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/ventas.php">
-            <i class="bi bi-cash-stack me-1"></i> Ventas
+          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'orden_compra.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/orden_compra.php">
+            <i class="bi bi-cart3 me-1"></i> Compras
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'orden_compra.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/orden_compra.php">
-            <i class="bi bi-cart3 me-1"></i> Órdenes
+          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'ventas.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/ventas.php">
+            <i class="bi bi-cash-stack me-1"></i> Ventas
           </a>
         </li>
         <li class="nav-item">
@@ -58,11 +65,6 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
           </a>
         </li>
         <?php if ($rol_nav === 'Admin'): ?>
-        <li class="nav-item">
-          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'usuarios.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/usuarios.php">
-            <i class="bi bi-person-gear me-1"></i> Usuarios
-          </a>
-        </li>
         <li class="nav-item">
           <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'registro.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/registro.php">
             <i class="bi bi-person-plus me-1"></i> Registro

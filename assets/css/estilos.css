@@ -73,6 +73,8 @@ body.custom-body {
 
 .login-center-logo {
     max-width: 90px;
+    height: auto;
+    object-fit: contain;
     filter: brightness(1.2);
 }
 
@@ -85,7 +87,7 @@ body.custom-body {
 }
 
 .login-card {
-    max-width: 400px;
+    max-width: 370px;
     width: 100%;
     border-radius: 16px;
     overflow: hidden;
@@ -155,8 +157,8 @@ body.custom-body {
     border-radius: 12px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-align: center;
-    padding: 20px 15px;
-    min-height: 150px;
+    padding: 14px 10px;
+    min-height: 120px;
     background-color: #fff;
 }
 
@@ -167,23 +169,26 @@ body.custom-body {
 
 .dashboard-card .card-title {
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: #333;
+    margin-top: 0.5rem !important;
 }
 
 .logo img {
-    max-width: 90px;
+    max-width: 80px;
+    height: auto;
+    object-fit: contain;
     mix-blend-mode: multiply;
 }
 
 .card-icon {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     color: #fff;
 }
 
@@ -416,6 +421,43 @@ body.custom-body {
     white-space: nowrap;
 }
 
+.table-hover thead th {
+    color: #000 !important;
+}
+
+.table-hover thead.table-primary th {
+    background: linear-gradient(180deg, #9bc0f7 0%, #80aef0 100%) !important;
+    border-bottom: 2px solid #6a9ae8;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.2);
+}
+
+.table-hover thead.table-success th {
+    background: linear-gradient(180deg, #68d0a4 0%, #4db88a 100%) !important;
+    border-bottom: 2px solid #3ba57a;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.2);
+}
+
+.table-hover thead.table-warning th {
+    background: linear-gradient(180deg, #f2d078 0%, #e0b840 100%) !important;
+    border-bottom: 2px solid #d0a830;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.2);
+}
+
+.informe-table thead.table-primary th {
+    background: linear-gradient(180deg, #d4e4fb 0%, #c2d8f6 100%) !important;
+    border-bottom: 2px solid #aecaf0;
+}
+
+.informe-table thead.table-success th {
+    background: linear-gradient(180deg, #d0f0df 0%, #bbe6cd 100%) !important;
+    border-bottom: 2px solid #a5ddbf;
+}
+
+.informe-table thead.table-warning th {
+    background: linear-gradient(180deg, #f9eebe 0%, #f3e4a5 100%) !important;
+    border-bottom: 2px solid #edd898;
+}
+
 /* =========================================
    PAGINACIÓN
    ========================================= */
@@ -514,13 +556,13 @@ body.custom-body {
         max-width: 70px;
     }
     .dashboard-card {
-        min-height: 120px;
-        padding: 15px 10px;
+        min-height: 100px;
+        padding: 10px 8px;
     }
     .card-icon {
-        width: 46px;
-        height: 46px;
-        font-size: 1.25rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
     }
     .form-card {
         margin: 1rem;

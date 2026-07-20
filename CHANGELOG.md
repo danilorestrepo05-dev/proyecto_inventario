@@ -525,3 +525,75 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 - **`reports/informe_productos.php`**: Nuevo filtro "Estado" (Todos / Activos / Inactivos) en formulario de filtros
 - **`reports/exportar_pdf.php`**: Filtro de estado aplicado + columna "Estado" en PDF de productos
 - **`reports/exportar_excel.php`**: Filtro de estado aplicado + columna "Estado" en Excel de productos
+
+---
+
+### 19/07/2026 — Ordenamiento de IDs y unificación de estilos de tabla
+
+#### Corregido: Ordenamiento por ID en informes de ventas y compras
+- **`reports/informe_ventas.php`**: ORDER BY cambiado de `ov.fecha DESC` a `ov.ID_orden_venta DESC` para que los IDs aparezcan en orden descendente consistente
+- **`reports/informe_compras.php`**: ORDER BY cambiado de `oc.fecha DESC` a `oc.ID_orden_compra DESC`
+- **`reports/exportar_excel.php`**: ORDER BY cambiado de `ov.fecha DESC` a `ov.ID_orden_venta DESC` en ventas; de `oc.fecha DESC` a `oc.ID_orden_compra DESC` en compras
+
+#### Actualizado: Estilo de tablas unificado con informes en 6 módulos CRUD
+- **`views/usuarios.php`**: Tabla cambiada de `table table-striped table-bordered tabla-usuarios` + `table-dark` a `table table-hover align-middle` + `table-primary`
+- **`views/clientes.php`**: Tabla cambiada a `table table-hover align-middle` + `table-success`
+- **`views/proveedores.php`**: Tabla cambiada a `table table-hover align-middle` + `table-warning`
+- **`views/productos.php`**: Tabla cambiada a `table table-hover align-middle` + `table-primary`
+- **`views/ventas.php`**: Tabla cambiada a `table table-hover align-middle` + `table-success`
+- **`views/orden_compra.php`**: Tabla cambiada a `table table-hover align-middle` + `table-warning`
+
+#### CSS: Gradiente en encabezados de tablas CRUD
+- **`assets/css/estilos.css`**: Nuevas reglas para `.table-hover thead.table-primary th`, `thead.table-success th` y `thead.table-warning th` con gradiente vertical sutil (`linear-gradient`), borde inferior definido y `text-shadow` para dar profundidad al encabezado
+- Los colores planos de Bootstrap ahora tienen un degradado que evita que se mezclen con el fondo de la página
+
+#### CSS: Encabezados unificados en tono azul claro
+- **6 vistas** (`usuarios.php`, `clientes.php`, `proveedores.php`, `productos.php`, `ventas.php`, `orden_compra.php`): Todos los thead cambiados a `table-primary` para unificar el color
+- **`assets/css/estilos.css`**: Gradiente de `table-primary` aclarado de `#5a8dee → #4278d4` a `#85b0f5 → #6a9ae8` para un tono más suave
+
+#### Actualizado: Barra de búsqueda estilo card en 6 módulos
+- **6 vistas** (`usuarios.php`, `clientes.php`, `proveedores.php`, `productos.php`, `ventas.php`, `orden_compra.php`): Input de búsqueda envuelto en `card shadow-sm mb-4` con `card-body py-3` (mismo estilo visual que los filtros de informes, sin los dropdowns de filtro)
+- Eliminado `form-control-lg rounded-pill` — ahora usa `form-control` estándar dentro de la card
+
+#### Actualizado: Botón "Mostrar inactivos" reposicionado
+- **4 vistas** (`usuarios.php`, `clientes.php`, `proveedores.php`, `productos.php`): Botón "Mostrar/Ocultar inactivos" movido de la fila de búsqueda a la fila del header, al lado del botón "Agregar", alineado a la derecha
+
+#### Actualizado: Barra de búsqueda sin card y botones redondeados
+- **6 vistas** (`usuarios.php`, `clientes.php`, `proveedores.php`, `productos.php`, `ventas.php`, `orden_compra.php`): Eliminado wrapper `card shadow-sm` del input de búsqueda — ahora es un input directo con `form-control rounded-pill` (bordes redondeados como botones)
+
+#### Corregido: Búsqueda JS en módulos
+- **`assets/js/script.js`**: Selector cambiado de `.tabla-usuarios tbody tr` a `table tbody tr` — la búsqueda ahora funciona en todos los módulos (antes solo buscaba en tablas con clase `tabla-usuarios` que fue eliminada)
+
+#### Actualizado: Navbar reordenada
+- **`views/includes/navbar.php`**: Nuevo orden: Inicio, Usuarios (Admin), Proveedores, Clientes, Productos, Compras, Ventas, Informes, Registro (Admin). Renombrado "Órdenes" a "Compras"
+
+#### CSS: Encabezados de informes más claros
+- **`assets/css/estilos.css`**: Gradientes de `table-primary`, `table-success` y `table-warning` aclarados significativamente — tonos pastel con texto oscuro en vez de fondos saturados con texto blanco
+
+#### CSS: Encabezados con fuente negra y colores diferenciados módulos/informes
+- **`assets/css/estilos.css`**: Regla global `.table-hover thead th` con `color: #000` para fuente negra en todos los encabezados
+- **6 módulos**: Gradientes originales restaurados (`table-primary`: `#85b0f5` → `#6a9ae8`)
+- **3 informes**: Clase `informe-table` agregada a las tablas, con fondos más claros (`table-primary`: `#c5dbfa` → `#b3cef5`, `table-success`: `#c2ecd5` → `#a8dfc0`, `table-warning`: `#f7e8b8` → `#f0dda0`)
+- **4 vistas** (`usuarios.php`, `clientes.php`, `proveedores.php`, `productos.php`): Botón "Mostrar/Ocultar inactivos" movido del header a la misma fila que la búsqueda, posicionado a la derecha frente al input, usando `d-flex justify-content-between`
+
+---
+
+### 19/07/2026 — Logo login y cards dashboard ajustados
+
+#### CSS: Logo login menos achatado
+- **`assets/css/estilos.css`**: `.login-center-logo` cambiado de `max-width: 90px` a `110px` con `height: auto` para proporción correcta
+
+#### CSS: Cards del dashboard más compactas
+- **`assets/css/estilos.css`**: `.dashboard-card` reducido de `min-height: 150px` / `padding: 20px 15px` a `120px` / `14px 10px`
+- **`assets/css/estilos.css`**: `.card-icon` reducido de `56px` a `48px`, font-size de `1.5rem` a `1.35rem`
+- **`assets/css/estilos.css`**: `.dashboard-card .card-title` reducido de `0.95rem` a `0.85rem` con margen ajustado
+- **`menu.php`**: Header reducido de `h2` a `h5`, gap de grid de `g-3` a `g-2`, padding de `py-4` a `py-3`
+- **`menu.php`**: Renombrado "Órdenes" a "Compras" para consistencia con navbar
+
+#### CSS/HTML: Login más compacto
+- **`index.php`**: Inputs cambiados de `form-control-lg` a `form-control`, botón de `btn-lg` a normal con `py-2`, título de `h4` a `h5`, spacing reducido (`mb-3` → `mb-2`, `mb-4` → `mb-3`, `p-4` → `p-3`)
+- **`assets/css/estilos.css`**: `.login-card` reducido de `max-width: 400px` a `370px`
+
+#### CSS: Logos sin distorsión horizontal
+- **`assets/css/estilos.css`**: `.login-center-logo` reducido a `90px` con `object-fit: contain`
+- **`assets/css/estilos.css`**: `.logo img` (dashboard) reducido a `80px` con `object-fit: contain`

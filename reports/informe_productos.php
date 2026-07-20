@@ -142,7 +142,7 @@ if (!empty($filtro_estado)) $params_paginacion .= '&estado=' . urlencode($filtro
             <div class="card-body">
                 <h5 class="card-title mb-3">Listado de Productos</h5>
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover informe-table">
                         <thead class="table-primary">
                             <tr>
                                 <th>ID</th>

@@ -53,16 +53,16 @@ setTimeout(function() {
 
 <?php echo $mostrar_alerta; ?>
 
-<div class="container py-4 dashboard-container">
-    <div class="text-center mb-4">
+<div class="container py-3 dashboard-container">
+    <div class="text-center mb-3">
         <div class="logo">
             <img src="assets/img/sgi-software (1).png" alt="SGI">
         </div>
-        <h2 class="mt-2 fw-semibold">Bienvenido al Sistema</h2>
-        <p class="text-muted">Seleccione un módulo para continuar</p>
+        <h5 class="mt-2 fw-semibold">Bienvenido al Sistema</h5>
+        <p class="text-muted small mb-0">Seleccione un módulo para continuar</p>
     </div>
 
-    <div class="row g-3 justify-content-center">
+    <div class="row g-2 justify-content-center">
         <?php if ($rol === 'Admin'): ?>
         <div class="col-6 col-md-4 col-lg-3">
             <a href="views/usuarios.php" class="text-decoration-none">
@@ -137,7 +137,7 @@ setTimeout(function() {
                         <div class="card-icon card-icon-red">
                             <i class="bi bi-cart3"></i>
                         </div>
-                        <h6 class="card-title mt-3">Órdenes</h6>
+                        <h6 class="card-title mt-3">Compras</h6>
                     </div>
                 </div>
             </a>

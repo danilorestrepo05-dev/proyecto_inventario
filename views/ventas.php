@@ -101,12 +101,12 @@ setTimeout(function() {
   </div>
 
   <div class="mb-3">
-    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control-lg rounded-pill">
+    <input type="text" id="busqueda" placeholder="Buscar..." class="form-control rounded-pill" style="max-width: 300px;">
   </div>
 
   <div class="table-responsive">
-    <table class="table table-striped table-bordered align-middle tabla-usuarios">
-      <thead class="table-dark">
+    <table class="table table-hover align-middle">
+      <thead class="table-primary">
         <tr>
           <th>Código</th>
           <th>Producto</th>
