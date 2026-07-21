@@ -30,7 +30,9 @@ Proyecto_inventario/
 │       └── script.js                ← Funciones JS globales
 ├── config/
 │   ├── conexion.php                 ← Conexión a MySQL
-│   └── csrf.php                     ← [NUEVO] Helper CSRF (token, validate, field)
+│   ├── csrf.php                     ← [NUEVO] Helper CSRF (token, validate, field)
+│   ├── historial.php                ← Helper de registro de cambios
+│   └── rate_limit.php               ← Rate limiting para login (5 intentos / 15 min)
 ├── controllers/
 │   ├── cerrar_sesion.php
 │   ├── eliminar_cliente.php
@@ -676,3 +678,12 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 - Eliminado `position-fixed top-0 start-50 translate-middle-x` — alertas ahora fluyen en el documento con `mx-auto mt-3`
 - **`views/clientes.php`**: Agregado script de auto-dismiss (faltaba) + lectura de `$_GET['mensaje']`
 - **`views/proveedores.php`**: Agregado script de auto-dismiss (faltaba) + lectura de `$_GET['mensaje']`
+
+### 20/07/2026 — Actualización documentación README.md
+
+#### Actualizado: README.md — Correcciones y mejoras generales
+- **`README.md`**: Agregada tabla `login_attempts` a la lista de tablas de la base de datos (faltaba, causaba error en instalación)
+- **`README.md`**: Agregado archivo `config/rate_limit.php` a la estructura del proyecto (rate limiting documentado)
+- **`README.md`**: Agregado rate limiting a la sección "Seguridad" (protección contra fuerza bruta: 5 intentos / 15 min)
+- **`README.md`**: Agregadas features "Registro de usuarios" y "Recuperación de contraseña" (formularios Admin no documentados)
+- **`README.md`**: Corregido URL de clone de `TU_USUARIO` al usuario real `danilorestrepo05-dev`

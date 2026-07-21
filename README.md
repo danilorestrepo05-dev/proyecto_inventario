@@ -13,7 +13,9 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
 - **Exportación** — PDF (FPDF) y Excel (HTML .xls) para informes de ventas, compras y productos
 - **Dashboard** — Panel principal con cards de acceso rápido por módulo
 - **Control de roles** — Admin (CRUD completo + historial + gestión usuarios) y Operario (lectura + agregar clientes/proveedores/productos)
-- **Seguridad** — Prepared statements, tokens CSRF, hash de contraseñas con `password_verify()`, headers anti-caché
+- **Registro de usuarios** — Formulario de creación de usuarios con selección de rol (Admin)
+- **Recuperación de contraseña** — Reset seguro de claves desde la vista de administración (Admin)
+- **Seguridad** — Prepared statements, tokens CSRF, hash de contraseñas con `password_verify()`, headers anti-caché, rate limiting en login
 - **Soft Delete** — Activar/desactivar registros (clientes, proveedores, productos, usuarios) en lugar de eliminación física
 - **Borrador automático** — Formularios de ventas y órdenes guardan progreso en localStorage
 
@@ -36,7 +38,7 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
 1. Clonar el repositorio en la carpeta `htdocs` de XAMPP:
    ```bash
    cd C:\xampp\htdocs
-   git clone https://github.com/TU_USUARIO/Proyecto_inventario.git
+   git clone https://github.com/danilorestrepo05-dev/Proyecto_inventario.git
    ```
 
 2. Iniciar Apache y MySQL desde el panel de control de XAMPP.
@@ -56,6 +58,7 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
    - `orden_compra`
    - `detalle_orden_compra`
    - `historial_cambios`
+   - `login_attempts`
 
 5. Acceder al sistema:
    ```
@@ -73,7 +76,8 @@ Proyecto_inventario/
 ├── config/
 │   ├── conexion.php  → Conexión MySQL
 │   ├── csrf.php      → Helper CSRF (token, validate, field)
-│   └── historial.php → Helper de registro de cambios
+│   ├── historial.php → Helper de registro de cambios
+│   └── rate_limit.php → Rate limiting para login (5 intentos / 15 min)
 ├── controllers/      → 22 archivos de lógica de negocio
 ├── fpdf/             → Librería FPDF para exportación PDF
 ├── reports/          → Informes, historial de cambios, detalle de ventas/compras, exportación
@@ -100,6 +104,7 @@ Proyecto_inventario/
 - **XSS** — Salida de datos sanitizada con `htmlspecialchars()`
 - **Headers Anti-Caché** — Páginas autenticadas envían `Cache-Control: no-cache, no-store, must-revalidate` + listener `pageshow` para prevenir acceso post-logout
 - **Validación de Rol** — Controllers de escritura verifican `$_SESSION['rol'] === 'Admin'`
+- **Rate Limiting** — Protección contra fuerza bruta: máximo 5 intentos fallidos por IP + documento, bloqueo temporal de 15 minutos
 
 ## Uso
 
