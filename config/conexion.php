@@ -13,5 +13,7 @@ $conn = mysqli_connect($servername, $username, $password, $db);
 if (!$conn) {
   die("Conexión fallida: " . mysqli_connect_error());
 }
-echo "";
+
+// Charset UTF-8 para tildes y ñ
+mysqli_set_charset($conn, "utf8mb4");
 ?>
