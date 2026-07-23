@@ -33,6 +33,7 @@ $tecnico_default = $_SESSION['id_usuario'];
             <form action="../controllers/procesar_nuevo_servicio.php" method="POST">
                 <?php echo csrf_field(); ?>
 
+                <!-- Sección 1: Datos del cliente y técnico asignado -->
                 <h6 class="text-uppercase fw-bold text-secondary mb-3">
                     <i class="bi bi-person-lines-fill me-1"></i> Informaci&oacute;n del Cliente
                 </h6>
@@ -60,6 +61,7 @@ $tecnico_default = $_SESSION['id_usuario'];
                     <input type="text" class="form-control" name="nombre_servicio" placeholder="Ej: Mantenimiento trimestral (opcional)">
                 </div>
 
+                <!-- Sección 2: Datos del primer dispositivo a registrar -->
                 <h6 class="text-uppercase fw-bold text-secondary mb-3">
                     <i class="bi bi-laptop me-1"></i> Primer Dispositivo
                 </h6>
@@ -82,6 +84,7 @@ $tecnico_default = $_SESSION['id_usuario'];
                     </div>
                 </div>
 
+                <!-- Sección 3: Primer trabajo asociado al dispositivo -->
                 <h6 class="text-uppercase fw-bold text-secondary mb-3">
                     <i class="bi bi-wrench me-1"></i> Primer Trabajo
                 </h6>

@@ -1,4 +1,5 @@
 <?php
+// Controlador para desactivar (soft delete) un servicio, solo accesible por Admin
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
@@ -19,6 +20,7 @@ if ($rol !== 'Admin') {
     exit();
 }
 
+// Validar el ID recibido por parámetro GET
 $id_servicio = intval($_GET['id'] ?? 0);
 if ($id_servicio <= 0) {
     header("Location: ../views/reparaciones.php");
@@ -27,7 +29,7 @@ if ($id_servicio <= 0) {
 
 $rol = $_SESSION['rol'] ?? '';
 
-// Obtener info antes de eliminar
+// Obtener el nombre del servicio antes de desactivarlo (para el historial)
 $sql = "SELECT nombre FROM servicio WHERE ID_servicio=?";
 $stmt = @$conn->prepare($sql);
 $stmt->bind_param("i", $id_servicio);
@@ -40,7 +42,7 @@ if (!$fila) {
     exit();
 }
 
-// Soft delete
+// Soft delete: marcar como inactivo en vez de borrar para preservar historial
 $sql_del = "UPDATE servicio SET activo = 0 WHERE ID_servicio=?";
 $stmt_del = @$conn->prepare($sql_del);
 $stmt_del->bind_param("i", $id_servicio);

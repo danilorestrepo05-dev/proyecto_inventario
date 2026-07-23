@@ -19,11 +19,13 @@ if (isset($_GET['mensaje'])) {
     ";
 }
 
+// Variables de filtro recibidas por query string
 $filtro_estado = isset($_GET['estado']) ? $_GET['estado'] : '';
 $filtro_busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 $filtro_fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
 $filtro_fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
 
+// Consulta base: servicios activos con conteo de dispositivos y trabajos
 $sql_base = "SELECT s.ID_servicio, s.nombre, s.fecha_creacion, s.activo,
                     c.nombre AS cliente_nombre, c.apellido AS cliente_apellido,
                     c.telefono AS cliente_telefono, c.correo AS cliente_correo,
@@ -61,7 +63,7 @@ if ($filtro_estado === 'completado') {
 $sql_base .= " ORDER BY s.ID_servicio DESC";
 $resultado = $conn->query($sql_base);
 
-// Paginacion
+// Paginación: 10 registros por página con cálculo de páginas
 $por_pagina = 10;
 $pagina_actual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
 $total_registros = $resultado->num_rows;
@@ -78,6 +80,7 @@ if (!empty($filtro_fecha_fin)) $params_filtro .= "&fecha_fin=" . urlencode($filt
 if (!empty($filtro_estado)) $params_filtro .= "&estado=" . urlencode($filtro_estado);
 ?>
 
+<!-- Auto-ocultar alertas de éxito después de 5 segundos -->
 <script>
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
@@ -111,6 +114,7 @@ setTimeout(function() {
 <?php echo $mostrar_alerta; ?>
 
 <div class="container my-4">
+    <!-- Encabezado de la página con botón de nuevo servicio -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
         <h2 class="mb-3 mb-md-0"><i class="bi bi-tools me-2"></i>Soporte T&eacute;cnico</h2>
         <div class="d-flex flex-column flex-sm-row gap-2">
@@ -120,6 +124,7 @@ setTimeout(function() {
         </div>
     </div>
 
+    <!-- Filtros de búsqueda: texto, estado, rango de fechas -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="" class="row g-3">
@@ -161,6 +166,7 @@ setTimeout(function() {
         </div>
     </div>
 
+    <!-- Tabla principal de servicios con estados y acciones -->
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-primary">
@@ -210,6 +216,7 @@ setTimeout(function() {
             </tbody>
         </table>
 
+        <!-- Navegación de páginas con preservación de filtros -->
         <?php if ($total_paginas > 1): ?>
         <div class="pagination-container">
             <nav aria-label="Paginacion">

@@ -1,4 +1,5 @@
 <?php
+// Controlador para eliminar un repuesto de un trabajo, devolviendo stock y limpiando la venta vinculada
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
@@ -17,7 +18,7 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
 $id_reparacion_repuesto = intval($_POST['id_reparacion_repuesto']);
 $id_trabajo = intval($_POST['id_trabajo']);
 
-// Obtener datos antes de eliminar para devolver stock y eliminar venta
+// Cargar los datos del repuesto antes de borrarlo para reversar stock y ventas
 $sql = "SELECT rr.ID_producto, rr.cantidad, rr.ID_orden_venta, p.nombre AS producto_nombre
         FROM reparacion_repuesto rr
         INNER JOIN producto p ON rr.ID_producto = p.ID_producto
@@ -33,10 +34,11 @@ if (!$fila) {
     exit();
 }
 
+// Iniciar transacción porque se modifican 3 tablas: producto, orden_venta y reparacion_repuesto
 $conn->begin_transaction();
 
 try {
-    // 1. Devolver stock
+    // Paso 1: Reintegrar las unidades al inventario
     $sql_stock = "UPDATE producto SET stock = stock + ? WHERE ID_producto = ?";
     $stmt_stock = $conn->prepare($sql_stock);
     $stmt_stock->bind_param("ii", $fila['cantidad'], $fila['ID_producto']);
@@ -45,7 +47,7 @@ try {
     }
     $stmt_stock->close();
 
-    // 2. Eliminar venta vinculada
+    // Paso 2: Eliminar el detalle de venta y limpiar la orden si queda vacía
     if (!empty($fila['ID_orden_venta'])) {
         $sql_del_det = "DELETE FROM detalle_orden_venta WHERE ID_orden_venta = ? AND ID_producto = ?";
         $stmt_del_det = $conn->prepare($sql_del_det);
@@ -64,7 +66,7 @@ try {
         $stmt_count->close();
 
         if ($count_row['total'] == 0) {
-            // Eliminar orden vacía
+            // La orden no tiene más productos, se elimina para no dejar datos huérfanos
             $sql_del_orden = "DELETE FROM orden_venta WHERE ID_orden_venta = ?";
             $stmt_del_orden = $conn->prepare($sql_del_orden);
             $stmt_del_orden->bind_param("i", $fila['ID_orden_venta']);
@@ -84,7 +86,7 @@ try {
         }
     }
 
-    // 3. Eliminar repuesto
+    // Paso 3: Borrar el registro del repuesto asignado al trabajo
     $sql_del = "DELETE FROM reparacion_repuesto WHERE ID_reparacion_repuesto = ?";
     $stmt_del = $conn->prepare($sql_del);
     $stmt_del->bind_param("i", $id_reparacion_repuesto);

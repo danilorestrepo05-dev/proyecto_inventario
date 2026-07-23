@@ -1,4 +1,5 @@
 <?php
+// Controlador para editar un repuesto ya asignado a un trabajo, ajustando stock y venta vinculada
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
@@ -25,7 +26,7 @@ if ($cantidad <= 0) {
     exit();
 }
 
-// Obtener datos actuales para ajustar stock
+// Recuperar los datos originales del repuesto para calcular diferencias de stock
 $sql_actual = "SELECT rr.ID_producto, rr.cantidad AS cantidad_actual, rr.precio_unitario AS precio_actual, rr.ID_orden_venta, p.nombre AS producto_nombre
                FROM reparacion_repuesto rr
                INNER JOIN producto p ON rr.ID_producto = p.ID_producto
@@ -41,9 +42,10 @@ if (!$actual) {
     exit();
 }
 
+// Calcular cuántas unidades se suman o restan respecto a la cantidad actual
 $diferencia = $cantidad - $actual['cantidad_actual'];
 
-// Verificar stock si se aumenta cantidad
+// Solo validar stock si se están usando más unidades que antes
 if ($diferencia > 0) {
     $sql_stock = "SELECT stock, nombre FROM producto WHERE ID_producto = ?";
     $stmt_stock = $conn->prepare($sql_stock);
@@ -58,10 +60,11 @@ if ($diferencia > 0) {
     }
 }
 
+// Iniciar transacción para mantener consistencia entre repuesto, stock y venta
 $conn->begin_transaction();
 
 try {
-    // 1. Actualizar repuesto
+    // Paso 1: Actualizar cantidad, precio y garantía del repuesto en el trabajo
     $sql = "UPDATE reparacion_repuesto SET cantidad=?, precio_unitario=?, garantia_proveedor_dias=? WHERE ID_reparacion_repuesto=?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("iiii", $cantidad, $precio_unitario, $garantia_proveedor_dias, $id_reparacion_repuesto);
@@ -87,7 +90,7 @@ try {
         $stmt_adj->close();
     }
 
-    // 2. Actualizar venta vinculada
+    // Paso 2: Actualizar la venta automática asociada al repuesto
     if (!empty($actual['ID_orden_venta'])) {
         $nuevo_subtotal = $cantidad * $precio_unitario;
         $sql_det = "UPDATE detalle_orden_venta SET cantidad=?, precio_unitario=? WHERE ID_orden_venta=? AND ID_producto=?";
@@ -98,7 +101,7 @@ try {
         }
         $stmt_det->close();
 
-        // Recalcular total de la orden
+        // Recalcular el total de la orden sumando todos sus detalles
         $sql_total = "UPDATE orden_venta ov SET total = (SELECT IFNULL(SUM(dov.cantidad * dov.precio_unitario), 0) FROM detalle_orden_venta dov WHERE dov.ID_orden_venta = ov.ID_orden_venta) WHERE ov.ID_orden_venta = ?";
         $stmt_total = $conn->prepare($sql_total);
         $stmt_total->bind_param("i", $actual['ID_orden_venta']);
@@ -108,7 +111,7 @@ try {
         $stmt_total->close();
     }
 
-    // 3. Ajustar stock
+    // Paso 3: Ajustar el inventario según la diferencia (positiva o negativa)
     if ($diferencia != 0) {
         $sql_stock = "UPDATE producto SET stock = stock - ? WHERE ID_producto = ?";
         $stmt_stock = $conn->prepare($sql_stock);

@@ -1,6 +1,8 @@
 <?php
+// Zona horaria del servidor para que fechas y registros sean consistentes
 date_default_timezone_set('America/Bogota');
 
+// Credenciales de conexión al servidor MySQL local (XAMPP)
 $servername = "localhost";
 $username = "root";
 $password = "";

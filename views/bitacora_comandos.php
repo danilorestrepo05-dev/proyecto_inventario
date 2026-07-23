@@ -19,8 +19,10 @@ if (isset($_GET['mensaje'])) {
     ";
 }
 
+// Filtro por categoría desde URL
 $filtro_categoria = isset($_GET['categoria']) ? $_GET['categoria'] : '';
 
+// Consulta base con condición WHERE siempre verdadera para facilitar filtros dinámicos
 $sql_base = "SELECT * FROM bitacora_conocimiento WHERE 1=1";
 
 if (!empty($filtro_categoria)) {
@@ -40,9 +42,11 @@ $inicio = ($pagina_actual - 1) * $por_pagina;
 $consulta_paginada = $sql_base . " LIMIT $inicio, $por_pagina";
 $resultado_paginado = $conn->query($consulta_paginada);
 
+// Construye parámetros GET para preservar filtros en paginación
 $params_filtro = '';
 if (!empty($filtro_categoria)) $params_filtro .= "&categoria=" . urlencode($filtro_categoria);
 
+// Colores de badge por categoría
 $categorias_badges = [
     'optimizacion' => 'bg-success',
     'redes' => 'bg-info',
@@ -60,6 +64,7 @@ $categorias_labels = [
 ?>
 
 <script>
+// Ocultar alertas automáticamente tras 5 segundos
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
@@ -101,6 +106,7 @@ setTimeout(function() {
         </div>
     </div>
 
+    <!-- Formulario de filtros por búsqueda y categoría -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" action="" class="row g-3">
@@ -143,6 +149,7 @@ setTimeout(function() {
             </thead>
             <tbody>
                 <?php
+                // Renderiza cada fila de comandos encontrados
                 if ($total_registros > 0) {
                     while ($fila = $resultado_paginado->fetch_assoc()) {
                         $cat = $fila['categoria'];
@@ -163,6 +170,7 @@ setTimeout(function() {
                             echo "</td>";
                         echo "</tr>";
                     }
+                // Mensaje cuando no hay resultados
                 } else {
                     echo "<tr><td colspan='6' class='text-center'>No se encontraron comandos</td></tr>";
                 }
@@ -197,7 +205,7 @@ setTimeout(function() {
     </div>
 </div>
 
-<!-- MODAL: Agregar/Editar Comando -->
+<!-- MODAL: Formulario para crear o editar comandos de la base de conocimiento -->
 <div class="modal fade" id="modalComando" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -247,6 +255,7 @@ setTimeout(function() {
 <script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/script.js"></script>
 <script>
+// Copia comando al portapapeles con feedback visual
 function copiarComando(btn) {
     var comando = btn.getAttribute('data-comando');
     navigator.clipboard.writeText(comando).then(function() {
@@ -261,6 +270,7 @@ function copiarComando(btn) {
     });
 }
 
+// Rellena el modal con datos del comando seleccionado para edición
 function editarComando(id, data) {
     document.getElementById('accion_comando').value = 'editar';
     document.getElementById('id_comando').value = id;
@@ -273,6 +283,7 @@ function editarComando(id, data) {
     modal.show();
 }
 
+// Resetea el modal a estado "crear" al cerrarlo
 document.getElementById('modalComando').addEventListener('hidden.bs.modal', function() {
     document.getElementById('accion_comando').value = 'crear';
     document.getElementById('id_comando').value = '';

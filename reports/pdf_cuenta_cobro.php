@@ -13,6 +13,7 @@ if (!isset($_SESSION['usuario'])) {
 
 require(__DIR__ . '/../fpdf/fpdf.php');
 
+// Datos fijos de la empresa para el encabezado del PDF
 $empresa = [
     'nombre' => 'CompuMasterLD',
     'nit' => '1041149861-6',
@@ -23,10 +24,12 @@ $empresa = [
     'ciudad' => 'Fredonia',
 ];
 
+// Retorna el carácter ASCII correspondiente al código dado
 function u($char) {
     return chr($char);
 }
 
+// Convierte un número (hasta 999 millones) a su representación en letras
 function numero_a_letras($numero) {
     if ($numero == 0) return 'CERO';
     $unidades = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE',
@@ -55,6 +58,7 @@ function numero_a_letras($numero) {
     return $resultado;
 }
 
+// Convierte un número menor a 1000 a letras
 function numero_a_bajo_millon($n) {
     $unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE',
                  'DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
@@ -84,13 +88,14 @@ function numero_a_bajo_millon($n) {
     return $resultado;
 }
 
+// Codifica caracteres especiales (tildes, ñ) a ISO-8859-1 para FPDF
 function t($str) {
     $search = ['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'];
     $replace = [chr(225),chr(233),chr(237),chr(243),chr(250),chr(241),chr(193),chr(201),chr(205),chr(211),chr(218),chr(209)];
     return str_replace($search, $replace, $str);
 }
 
-// Mode detection
+// Detecta modo de operación y captura parámetros del formulario
 $id_servicio = intval($_POST['id_servicio'] ?? 0);
 $id_trabajo = intval($_POST['id_trabajo'] ?? 0);
 $mostrar_precios = intval($_POST['mostrar_precios'] ?? 0);
@@ -102,10 +107,12 @@ if ($id_servicio <= 0 && $id_trabajo <= 0) {
     exit();
 }
 
+// Verdadero si se factura un servicio completo, falso si es un trabajo individual
 $is_service_mode = ($id_servicio > 0);
 
-// =================== DATA EXTRACTION ===================
+// =================== EXTRACCIÓN DE DATOS ===================
 
+// Modo servicio: carga servicio, dispositivos, trabajos, repuestos y programas
 if ($is_service_mode) {
 
     $sql = "SELECT s.*, c.nombre, c.apellido, c.identificacion, c.tipo_identificacion, c.telefono, c.correo
@@ -130,6 +137,7 @@ if ($is_service_mode) {
     $result_disp = $stmt_disp->get_result();
     $stmt_disp->close();
 
+    // Almacena dispositivos en array para iterar después
     $arr_dispositivos = [];
     while ($d = $result_disp->fetch_assoc()) {
         $arr_dispositivos[] = $d;
@@ -145,6 +153,7 @@ if ($is_service_mode) {
     $result_trab = $stmt_trab->get_result();
     $stmt_trab->close();
 
+    // Agrupa trabajos por ID de dispositivo para fácil acceso
     $all_trabajos = [];
     while ($tr = $result_trab->fetch_assoc()) {
         $all_trabajos[$tr['ID_dispositivo']][] = $tr;
@@ -162,6 +171,7 @@ if ($is_service_mode) {
     $result_rep = $stmt_rep->get_result();
     $stmt_rep->close();
 
+    // Agrupa repuestos por trabajo y acumula el total
     $all_repuestos = [];
     $total_repuestos = 0;
     while ($r = $result_rep->fetch_assoc()) {
@@ -181,6 +191,7 @@ if ($is_service_mode) {
     $result_prog = $stmt_prog->get_result();
     $stmt_prog->close();
 
+    // Agrupa programas instalados por trabajo y acumula el total
     $all_programas = [];
     $total_programas = 0;
     while ($p = $result_prog->fetch_assoc()) {
@@ -204,6 +215,7 @@ if ($is_service_mode) {
 
     $numero_id = $id_servicio;
 
+// Modo trabajo individual: carga datos de un solo trabajo con sus relaciones
 } else {
 
     $sql = "SELECT t.*, ds.dispositivo, ds.marca, ds.modelo,
@@ -245,6 +257,7 @@ if ($is_service_mode) {
 
     mysqli_close($conn);
 
+    // Acumula repuestos y calcula subtotales
     $arr_repuestos = [];
     $total_repuestos = 0;
     while ($r = $result_rep->fetch_assoc()) {
@@ -253,6 +266,7 @@ if ($is_service_mode) {
         $arr_repuestos[] = $r;
     }
 
+    // Acumula programas instalados y calcula subtotales
     $arr_programas = [];
     $total_programas = 0;
     while ($p = $result_prog->fetch_assoc()) {
@@ -275,9 +289,10 @@ if ($is_service_mode) {
     $numero_id = $id_trabajo;
 }
 
-// =================== TOTALS ===================
+// =================== CÁLCULOS TOTALES ===================
 
 $total_bruto = $mano_obra + $total_repuestos + $total_programas;
+// Aplica descuento: porcentaje sobre el total bruto o valor fijo
 $total_descuento = 0;
 if ($descuento_valor > 0) {
     if ($descuento_tipo == 'porcentaje') {
@@ -288,10 +303,12 @@ if ($descuento_valor > 0) {
 }
 $total_neto = $total_bruto - $total_descuento;
 
-// =================== PDF CLASS ===================
+// =================== CLASE PDF ===================
 
 class PDF extends FPDF {
+    // Cabecera vacía: se genera manualmente
     function Header() {}
+    // Pie de página con datos de contacto
     function Footer() {
         $this->SetY(-20);
         $this->SetFont('Arial', '', 8);
@@ -306,6 +323,7 @@ class PDF extends FPDF {
     }
 }
 
+// Salta de página si no hay espacio suficiente antes del pie
 function verificar_cierre($pdf, $espacio) {
     $restante = $pdf->GetPageHeight() - $pdf->GetY() - 30;
     if ($restante < $espacio) {
@@ -313,7 +331,7 @@ function verificar_cierre($pdf, $espacio) {
     }
 }
 
-// =================== PDF GENERATION ===================
+// =================== GENERACIÓN DEL PDF ===================
 
 $pdf = new PDF();
 $pdf->AliasNbPages();
@@ -331,6 +349,7 @@ $pdf->SetTextColor(26, 32, 53);
 $pdf->Cell(0, 10, t('CUENTA DE COBRO'), 0, 1, 'C');
 $pdf->SetTextColor(0, 0, 0);
 
+// Número consecutivo de la cuenta de cobro con formato Año-0001
 $no_cuenta = 'No. CxC-' . date('Y') . '-' . str_pad($numero_id, 4, '0', STR_PAD_LEFT);
 $pdf->SetFont('Arial', 'B', 11);
 $pdf->Cell(0, 6, $no_cuenta, 0, 1, 'C');
@@ -368,6 +387,7 @@ $pdf->SetLineWidth(0.3);
 $pdf->Line(15, $pdf->GetY(), 195, $pdf->GetY());
 $pdf->Ln(5);
 
+// Total en letras y formato numérico
 $suma_texto = numero_a_letras($total_neto) . ' PESOS';
 $suma_numero = '$' . number_format($total_neto, 0, ',', '.') . ' COP';
 $pdf->SetFont('Arial', 'B', 11);
@@ -389,10 +409,11 @@ $pdf->Cell(0, 8, t('POR CONCEPTO DE'), 0, 1, 'L');
 $pdf->SetTextColor(0, 0, 0);
 $pdf->Ln(3);
 
-// =================== CONCEPT SECTION ===================
+// =================== SECCIÓN DE CONCEPTOS ===================
 
 $numero_item = 1;
 
+// Modo servicio: lista dispositivos con sus trabajos, repuestos y programas
 if ($is_service_mode) {
 
     foreach ($arr_dispositivos as $disp) {
@@ -409,6 +430,7 @@ if ($is_service_mode) {
         $pdf->MultiCell(0, 6, $concepto, 0, 'L');
         $numero_item++;
 
+        // Renderiza diagnóstico, repuestos y programas de cada trabajo
         $tasks = $all_trabajos[$disp_id] ?? [];
         foreach ($tasks as $trab) {
             $diagnostico = trim($trab['diagnostico'] ?? '');
@@ -431,6 +453,7 @@ if ($is_service_mode) {
                 $pdf->SetTextColor(0, 0, 0);
             }
 
+            // Detalle de repuestos usados en este trabajo
             $task_repuestos = $all_repuestos[$trab_id] ?? [];
             foreach ($task_repuestos as $r) {
                 $sub = $r['cantidad'] * $r['precio_unitario'];
@@ -447,6 +470,7 @@ if ($is_service_mode) {
                 $pdf->SetTextColor(0, 0, 0);
             }
 
+            // Detalle de programas instalados en este trabajo
             $task_programas = $all_programas[$trab_id] ?? [];
             foreach ($task_programas as $p) {
                 $prog_cant = intval($p['cantidad'] ?? 1);
@@ -490,6 +514,7 @@ if ($is_service_mode) {
         $pdf->Ln(2);
     }
 
+// Modo trabajo individual: renderiza un solo dispositivo con su información
 } else {
 
     verificar_cierre($pdf, 25);
@@ -537,6 +562,7 @@ if ($is_service_mode) {
         $pdf->Ln(1);
     }
 
+    // Lista de repuestos individuales
     if (count($arr_repuestos) > 0) {
         foreach ($arr_repuestos as $r) {
             $sub = $r['cantidad'] * $r['precio_unitario'];
@@ -555,6 +581,7 @@ if ($is_service_mode) {
         $pdf->Ln(1);
     }
 
+    // Lista de programas instalados
     if (count($arr_programas) > 0) {
         foreach ($arr_programas as $p) {
             $prog_cant = intval($p['cantidad'] ?? 1);
@@ -585,10 +612,11 @@ if ($is_service_mode) {
     }
 }
 
-// =================== SUMMARY TABLE ===================
+// =================== TABLA RESUMEN DE TOTALES ===================
 
 $pdf->SetAutoPageBreak(false);
 
+// Bloque de resumen: solo se renderiza si se habilitó mostrar precios
 if ($mostrar_precios == 1) {
     $pdf->Ln(2);
     $pdf->SetDrawColor(26, 32, 53);
@@ -606,6 +634,7 @@ if ($mostrar_precios == 1) {
     }
     $pdf->Cell(0, 6, 'Subtotal: $' . number_format($total_bruto, 0, ',', '.'), 0, 1, 'R');
 
+    // Línea de descuento con etiqueta según tipo (porcentaje o fijo)
     if ($total_descuento > 0) {
         $desc_label = 'Descuento';
         if ($descuento_tipo == 'porcentaje') { $desc_label .= ' (' . $descuento_valor . '%)';
@@ -628,8 +657,9 @@ if ($mostrar_precios == 1) {
     $pdf->Line(15, $pdf->GetY(), 195, $pdf->GetY());
 }
 
-// =================== CLOSING ===================
+// =================== SECCIÓN DE CIERRE ===================
 
+// Salta de página si no cabe la sección de cierre con firma
 $altura_cierre = 42;
 $y_actual = $pdf->GetY();
 $espacio_disponible = $pdf->GetPageHeight() - $y_actual - 20;

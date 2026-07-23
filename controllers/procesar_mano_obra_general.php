@@ -1,8 +1,10 @@
 <?php
+// Controlador AJAX para guardar o actualizar el costo de mano de obra de un servicio
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
 
+// Forzar respuesta JSON ya que se llama vía XMLHttpRequest
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['usuario'])) {
@@ -10,6 +12,7 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
+// Solo aceptar peticiones AJAX por POST para evitar accesos directos
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
     echo json_encode(['ok' => false, 'mensaje' => 'Peticion invalida']);
     exit();
@@ -20,6 +23,7 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     exit();
 }
 
+// Sanitizar y convertir los valores recibidos del formulario
 $id_servicio = intval($_POST['id_servicio'] ?? 0);
 $costo = floatval($_POST['costo'] ?? 0);
 
@@ -33,6 +37,7 @@ if ($costo < 0) {
     exit();
 }
 
+// Actualizar el costo de mano de obra del servicio con sentencia preparada
 $sql = "UPDATE servicio SET mano_obra_costo = ? WHERE ID_servicio = ?";
 $stmt = @$conn->prepare($sql);
 if (!$stmt) {

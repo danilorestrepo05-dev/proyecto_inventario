@@ -1048,3 +1048,11 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: Filtro de módulo incluye opción Reparación
 - **`reports/historial.php`**: Agregada opción "Reparación" (value=`reparacion`) al select de filtro. Badge `bg-secondary` con icono `bi-wrench` para datos históricos del módulo reparación.
+
+### 23/07/2026 — Comentarios descriptivos en vistas
+
+#### Nuevo: Comentarios PHP/HTML en vistas del módulo Servicio Técnico
+- **`views/detalle_servicio.php`**: Agregados marcadores de sección HTML y comentarios JS para encabezado, tarjeta cliente, botones de acción, acordeón de dispositivos, modales y funciones AJAX.
+- **`views/editar_trabajo.php`**: Agregados marcadores de sección para encabezado, pestañas (info/repuestos/programas/bitácora), modales CRUD y funciones utilitarias JavaScript.
+- **`views/agregar_servicio.php`**: Agregados marcadores de sección para los tres bloques del formulario: cliente, dispositivo y trabajo.
+- **`views/reparaciones.php`**: Agregados marcadores de sección para encabezado, filtros, tabla principal, paginación y script de alertas.

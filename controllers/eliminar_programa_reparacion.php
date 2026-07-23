@@ -14,10 +14,11 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     exit();
 }
 
+// Sanitizar los IDs recibidos del formulario
 $id_programa = intval($_POST['id_programa']);
 $id_trabajo = intval($_POST['id_trabajo']);
 
-// Obtener nombre antes de eliminar
+// Obtener el nombre del programa antes de eliminarlo para registrarlo en el historial
 $sql = "SELECT nombre FROM programa_instalado WHERE ID_programa = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id_programa);
@@ -30,6 +31,7 @@ if (!$fila) {
     exit();
 }
 
+// Eliminar el programa de la base de datos por su ID
 $sql_del = "DELETE FROM programa_instalado WHERE ID_programa = ?";
 $stmt_del = $conn->prepare($sql_del);
 $stmt_del->bind_param("i", $id_programa);

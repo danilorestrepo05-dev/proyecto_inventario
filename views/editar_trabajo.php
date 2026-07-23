@@ -129,6 +129,7 @@ if (window.location.search.includes('mensaje=')) {
 <?php $nav_base = '..'; include('includes/navbar.php'); ?>
 <?php echo $mostrar_alerta; ?>
 
+<!-- Encabezado del trabajo con enlace de vuelta al servicio -->
 <div class="container py-4">
     <div class="card shadow-sm" style="max-width: 900px; margin: auto;">
         <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1a2035, #2d3a52); color: #fff;">
@@ -139,6 +140,7 @@ if (window.location.search.includes('mensaje=')) {
         </div>
         <div class="card-body p-4">
             <ul class="nav nav-tabs mb-4" role="tablist">
+                <!-- Pestañas de navegación: Información, Repuestos, Programas, Bitácora -->
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#tab-info">
                         <i class="bi bi-info-circle me-1"></i> Informaci&oacute;n
@@ -168,7 +170,7 @@ if (window.location.search.includes('mensaje=')) {
             </ul>
 
             <div class="tab-content">
-                <!-- TAB 1: INFORMACIÓN -->
+                <!-- TAB 1: INFORMACIÓN - Formulario con datos del trabajo, dispositivo y garantía -->
                 <div class="tab-pane fade show active" id="tab-info">
                     <form action="../controllers/procesar_edicion_trabajo.php" method="POST">
                         <?php echo csrf_field(); ?>
@@ -317,7 +319,7 @@ if (window.location.search.includes('mensaje=')) {
                     </div>
                 </div>
 
-                <!-- TAB 2: REPUESTOS -->
+                <!-- TAB 2: REPUESTOS - Tabla de repuestos usados y botón para agregar -->
                 <div class="tab-pane fade" id="tab-repuestos">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0">Repuestos Utilizados</h6>
@@ -379,7 +381,7 @@ if (window.location.search.includes('mensaje=')) {
                     <?php endif; ?>
                 </div>
 
-                <!-- TAB 3: PROGRAMAS -->
+                <!-- TAB 3: PROGRAMAS - Tabla de programas instalados y botón para agregar -->
                 <div class="tab-pane fade" id="tab-programas">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0">Programas Instalados</h6>
@@ -435,7 +437,7 @@ if (window.location.search.includes('mensaje=')) {
                     <?php endif; ?>
                 </div>
 
-                <!-- TAB 4: BITÁCORA -->
+                <!-- TAB 4: BITÁCORA - Historial de cambios de estado del trabajo -->
                 <div class="tab-pane fade" id="tab-bitacora">
                     <h6 class="mb-3">Historial de Cambios de Estado</h6>
                     <?php if ($result_bit->num_rows > 0): ?>
@@ -774,11 +776,13 @@ if (window.location.search.includes('mensaje=')) {
     </div>
 </div>
 
+<!-- Scripts JavaScript: funciones utilitarias, subtotales y AJAX para CRUD -->
 <script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script>
 var csrfToken = document.querySelector('input[name="csrf_token"]').value;
 var idTrabajo = <?php echo $id_trabajo; ?>;
 
+// Recarga la página preservando la pestaña activa en el hash
 function recargarEnMismoTab() {
     var tabActivo = document.querySelector('.nav-tabs .nav-link.active');
     var hash = tabActivo ? tabActivo.getAttribute('href') : '';
@@ -786,13 +790,16 @@ function recargarEnMismoTab() {
     location.reload(true);
 }
 
+// Formatea un número como moneda colombiana sin decimales
 function fmt(n) { return '$' + Number(n || 0).toLocaleString('es-CO', {maximumFractionDigits: 0}); }
 
+// Calcula el subtotal del modal de agregar programa (cantidad × costo)
 function calcSubtotalAdd() {
     var c = parseInt(document.querySelector('#modalPrograma input[name="cantidad"]').value) || 0;
     var p = parseInt(document.querySelector('#modalPrograma input[name="costo"]').value) || 0;
     document.getElementById('prog_subtotal_add').value = fmt(c * p);
 }
+// Calcula el subtotal del modal de editar programa
 function calcSubtotalEdit() {
     var c = parseInt(document.getElementById('edit_prog_cantidad').value) || 0;
     var p = parseInt(document.getElementById('edit_prog_costo').value) || 0;
@@ -804,6 +811,7 @@ document.querySelector('#modalPrograma input[name="costo"]').addEventListener('i
 document.getElementById('edit_prog_cantidad').addEventListener('input', calcSubtotalEdit);
 document.getElementById('edit_prog_costo').addEventListener('input', calcSubtotalEdit);
 
+// Auto-llenar precio al seleccionar un producto del dropdown
 document.getElementById('select_producto').addEventListener('change', function() {
     var selected = this.options[this.selectedIndex];
     var precio = selected.getAttribute('data-precio');
@@ -1021,6 +1029,7 @@ function mostrarAlerta(msg, tipo) {
     }, 3000);
 }
 
+// Al cargar, restaurar la pestaña activa desde el hash de la URL
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.nav-tabs .nav-link').forEach(function(tab) {
         tab.addEventListener('shown.bs.tab', function(e) {

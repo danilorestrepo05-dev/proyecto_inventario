@@ -22,9 +22,11 @@ if ($id_servicio <= 0 && $id_trabajo <= 0) {
     exit();
 }
 
+// Determinar si se genera el certificado por servicio completo o por un trabajo individual
 $modo_servicio = ($id_servicio > 0);
-
+// Modo servicio: obtener todos los dispositivos, trabajos y garantías del servicio completo
 if ($modo_servicio) {
+
     $sql = "SELECT s.*, c.nombre, c.apellido, c.identificacion, c.tipo_identificacion, c.telefono, c.correo
             FROM servicio s LEFT JOIN cliente c ON s.ID_cliente = c.ID_cliente WHERE s.ID_servicio = ?";
     $stmt = $conn->prepare($sql);
@@ -40,6 +42,7 @@ if ($modo_servicio) {
     }
     $servicio = $resultado->fetch_assoc();
 
+    // Obtener la lista de dispositivos asociados al servicio
     $sql_disp = "SELECT * FROM dispositivo_servicio WHERE ID_servicio = ?";
     $stmt_disp = $conn->prepare($sql_disp);
     $stmt_disp->bind_param("i", $id_servicio);
@@ -52,6 +55,7 @@ if ($modo_servicio) {
         $dispositivos[] = $d;
     }
 
+    // Para cada dispositivo, obtener sus trabajos y garantías asociadas
     $trabajos_por_dispositivo = [];
     $garantias_por_dispositivo = [];
     $sql_trab = "SELECT t.*, g.ID_garantia, g.dias AS gar_dias, g.fecha_inicio AS gar_fecha_inicio, g.fecha_fin AS gar_fecha_fin
@@ -76,6 +80,7 @@ if ($modo_servicio) {
     }
     $stmt_trab->close();
 
+    // Obtener todos los repuestos usados en los trabajos de este servicio
     $sql_rep = "SELECT rr.*, p.nombre AS producto_nombre, g.fecha_fin AS gar_trabajo_fin
                 FROM reparacion_repuesto rr
                 INNER JOIN trabajo t ON rr.ID_trabajo = t.ID_trabajo
@@ -89,6 +94,7 @@ if ($modo_servicio) {
     $result_rep = $stmt_rep->get_result();
     $stmt_rep->close();
 
+    // Obtener todos los programas instalados en los trabajos de este servicio
     $sql_prog = "SELECT pi.*, g.fecha_fin AS gar_trabajo_fin
                  FROM programa_instalado pi
                  INNER JOIN trabajo t ON pi.ID_trabajo = t.ID_trabajo
@@ -102,7 +108,7 @@ if ($modo_servicio) {
     $stmt_prog->close();
 
 } else {
-
+    // Modo trabajo individual: obtener datos del trabajo, dispositivo, cliente y garantía
     $sql = "SELECT t.*, ds.dispositivo, ds.marca, ds.modelo, ds.numero_serie,
                    s.ID_servicio, s.nombre AS servicio_nombre,
                    c.nombre, c.apellido, c.identificacion, c.tipo_identificacion, c.telefono, c.correo,
@@ -150,6 +156,7 @@ if ($modo_servicio) {
 
 mysqli_close($conn);
 
+// Clase PDF personalizada: sobreescribe Header vacío y Footer con datos de contacto
 class PDF extends FPDF {
     function Header() {
     }
@@ -167,6 +174,7 @@ class PDF extends FPDF {
     }
 }
 
+// Dibuja una barra de encabezado con fondo de color y título en blanco
 function draw_header_bar($pdf, $title, $color = [26, 32, 53]) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->SetFillColor($color[0], $color[1], $color[2]);
@@ -176,6 +184,7 @@ function draw_header_bar($pdf, $title, $color = [26, 32, 53]) {
     $pdf->Ln(2);
 }
 
+// Dibuja la sección de información del cliente: nombre, identificación, teléfono y correo
 function draw_client_info($pdf, $row) {
     draw_header_bar($pdf, 'INFORMACIÓN DEL CLIENTE');
     $pdf->SetFont('Arial', '', 9);
@@ -209,6 +218,7 @@ function draw_client_info($pdf, $row) {
     $pdf->Ln(3);
 }
 
+// Dibuja la sección de información del dispositivo con sus datos y garantía de mano de obra
 function draw_device_section($pdf, $disp, $garantias_trabajo = [], $incluir_garantia = false) {
     draw_header_bar($pdf, 'INFORMACIÓN DEL DISPOSITIVO', [35, 55, 75]);
     $pdf->SetFont('Arial', '', 9);
@@ -237,6 +247,7 @@ function draw_device_section($pdf, $disp, $garantias_trabajo = [], $incluir_gara
     $pdf->Ln(3);
 }
 
+// Dibuja el diagnóstico final del trabajo si existe contenido
 function draw_diagnostico($pdf, $trabajo_row) {
     if (!empty($trabajo_row['diagnostico'])) {
         draw_header_bar($pdf, 'DIAGNÓSTICO FINAL');
@@ -250,6 +261,7 @@ function draw_diagnostico($pdf, $trabajo_row) {
     }
 }
 
+// Dibuja la tabla de repuestos utilizados con precios, subtotales y fecha de garantía opcional
 function draw_repuestos_table($pdf, $result_rep, $incluir_garantia) {
     if ($result_rep->num_rows == 0) return;
 
@@ -299,6 +311,7 @@ function draw_repuestos_table($pdf, $result_rep, $incluir_garantia) {
     $pdf->Ln(3);
 }
 
+// Dibuja la tabla de programas instalados con versiones, costos y garantía opcional
 function draw_programas_table($pdf, $result_prog, $incluir_garantia) {
     if ($result_prog->num_rows == 0) return;
 
@@ -352,6 +365,7 @@ function draw_programas_table($pdf, $result_prog, $incluir_garantia) {
     $pdf->Ln(3);
 }
 
+// Dibuja los términos y condiciones generales más cláusulas dinámicas según tipo de garantía
 function draw_terminos_condiciones($pdf, $datos, $incluir_garantia) {
     draw_header_bar($pdf, 'TÉRMINOS Y CONDICIONES');
     $pdf->SetFont('Arial', '', 8);
@@ -392,7 +406,9 @@ function draw_terminos_condiciones($pdf, $datos, $incluir_garantia) {
     $pdf->Ln(3);
 }
 
+// Analiza repuestos, programas y garantías para determinar qué cláusulas dinámicas incluir en el certificado
 function calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispositivo = [], $trabajos_por_dispositivo = []) {
+    // Inicializar flags en false; se activan si se encuentra al menos un ítem con/sin garantía
     $datos = [
         'tiene_gar_mano_obra' => false,
         'tiene_gar_repuestos' => false,
@@ -401,6 +417,7 @@ function calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispo
         'sin_gar_programas' => false,
     ];
 
+    // Recorrer garantías por dispositivo para detectar si hay garantía de mano de obra
     if (!empty($garantias_por_dispositivo)) {
         foreach ($garantias_por_dispositivo as $gar_list) {
             if (!empty($gar_list)) {
@@ -410,6 +427,7 @@ function calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispo
         }
     }
 
+    // Recorrer repuestos para detectar cuáles tienen y cuáles no tienen garantía del proveedor
     $result_rep->data_seek(0);
     while ($r = $result_rep->fetch_assoc()) {
         if (!empty($r['garantia_proveedor_dias']) && $r['garantia_proveedor_dias'] > 0 && !empty($r['gar_trabajo_fin'])) {
@@ -419,6 +437,7 @@ function calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispo
         }
     }
 
+    // Recorrer programas para detectar cuáles tienen y cuáles no tienen garantía
     $result_prog->data_seek(0);
     while ($p = $result_prog->fetch_assoc()) {
         if (!empty($p['gar_dias']) && !empty($p['gar_fecha_fin'])) {
@@ -431,6 +450,7 @@ function calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispo
     return $datos;
 }
 
+// Crear instancia del PDF, configurar página y añadir logo y título del certificado
 $pdf = new PDF();
 $pdf->AliasNbPages();
 $pdf->AddPage();
@@ -448,10 +468,12 @@ $pdf->SetFont('Arial', '', 9);
 $pdf->Cell(0, 5, utf8_decode('Fecha: ' . date('d/m/Y H:i')), 0, 1, 'C');
 $pdf->Ln(4);
 
+// Generar el contenido del certificado según el modo (servicio o trabajo individual)
 if ($modo_servicio) {
 
     draw_client_info($pdf, $servicio);
 
+    // En modo servicio, recorrer cada dispositivo y sus trabajos asociados
     foreach ($dispositivos as $disp) {
         $gar_disp = $garantias_por_dispositivo[$disp['ID_dispositivo']] ?? [];
         draw_device_section($pdf, $disp, $gar_disp, $incluir_garantia);
@@ -462,10 +484,12 @@ if ($modo_servicio) {
         }
     }
 
+// En modo individual, mostrar datos del único trabajo y su dispositivo
 } else {
 
     draw_client_info($pdf, $trabajo);
 
+    // Preparar array de garantía si el trabajo tiene días de garantía
     $gar_trabajo = [];
     if (!empty($trabajo['gar_dias'])) {
         $gar_trabajo[] = $trabajo;
@@ -475,10 +499,13 @@ if ($modo_servicio) {
     draw_diagnostico($pdf, $trabajo);
 }
 
+// Dibujar tablas de repuestos y programas instalados
 draw_repuestos_table($pdf, $result_rep, $incluir_garantia);
 draw_programas_table($pdf, $result_prog, $incluir_garantia);
 
+// Calcular qué cláusulas aplican y dibujar términos y condiciones
 $datos_gar = calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispositivo ?? [], $trabajos_por_dispositivo ?? []);
 draw_terminos_condiciones($pdf, $datos_gar, $incluir_garantia);
 
+// Generar el PDF en el navegador con nombre de archivo con fecha
 $pdf->Output('I', 'certificado_trabajo_' . date('Y-m-d') . '.pdf');

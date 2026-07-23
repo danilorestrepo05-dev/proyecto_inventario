@@ -1,4 +1,5 @@
 <?php
+// Registra cada acción relevante en historial_cambios para auditoría del sistema
 function registrar_cambio($conn, $modulo, $accion, $ID_registro, $descripcion) {
     if (!isset($_SESSION['id_usuario'])) return;
     $stmt = @$conn->prepare("INSERT INTO historial_cambios (ID_usuario, modulo, accion, ID_registro, descripcion) VALUES (?, ?, ?, ?, ?)");

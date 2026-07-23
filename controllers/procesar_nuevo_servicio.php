@@ -1,19 +1,23 @@
 <?php
+// Controlador que crea un servicio completo (servicio + dispositivo + trabajo) en una sola transacción
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
 include("../config/historial.php");
 
+// Redirigir al login si el usuario no está autenticado
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit();
 }
 
+// Bloquear la petición si el token CSRF no coincide con el de sesión
 if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     header("Location: ../views/reparaciones.php?error=Token CSRF invalido");
     exit();
 }
 
+// Sanitizar y castear cada campo del formulario antes de usarlo en BD
 $cliente = intval($_POST['cliente']);
 $tecnico = intval($_POST['tecnico']) ?: intval($_SESSION['id_usuario']);
 $nombre_servicio = trim($_POST['nombre_servicio'] ?? '');
@@ -25,6 +29,7 @@ $tipo_trabajo = trim($_POST['tipo_trabajo'] ?? 'General');
 $problema_reportado = trim($_POST['problema_reportado']);
 $notas_internas = trim($_POST['notas_internas']);
 
+// Validar campos obligatorios: cliente, dispositivo y problema reportado
 if ($cliente <= 0) {
     mysqli_close($conn);
     echo "<script>alert('Error: Debe seleccionar un cliente valido'); window.history.back();</script>";
@@ -43,6 +48,7 @@ if (empty($problema_reportado)) {
     exit();
 }
 
+// Iniciar transacción para garantizar que servicio + dispositivo + trabajo se creen juntos o ninguno
 $conn->begin_transaction();
 
 try {
@@ -73,6 +79,7 @@ try {
     $id_trabajo = $conn->insert_id;
     $stmt_trab->close();
 
+    // Confirmar los 3 inserts en BD y registrar la auditoría
     $conn->commit();
 
     registrar_cambio($conn, 'servicio', 'crear', $id_servicio, 'Servicio "' . $nombre_servicio . '" creado - Dispositivo: ' . $dispositivo . ' ' . trim($marca . ' ' . $modelo));
@@ -82,6 +89,7 @@ try {
     exit();
 
 } catch (Exception $e) {
+    // Si cualquier paso falla, revertir todos los cambios para mantener integridad
     $conn->rollback();
     mysqli_close($conn);
     echo "<script>alert('" . addslashes($e->getMessage()) . "'); window.history.back();</script>";

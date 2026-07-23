@@ -8,17 +8,20 @@ if (!isset($_SESSION['usuario'])) {
 }
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
+// Captura de filtros de búsqueda desde parámetros GET
 $filtro_modulo = isset($_GET['modulo']) ? $_GET['modulo'] : '';
 $filtro_accion = isset($_GET['accion']) ? $_GET['accion'] : '';
 $filtro_usuario = isset($_GET['usuario']) ? intval($_GET['usuario']) : 0;
 $filtro_fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
 $filtro_fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
 
+// Consulta base: une historial con usuarios, condición WHERE 1=1 para filtros dinámicos
 $sql = "SELECT h.*, u.nombre, u.apellido 
         FROM historial_cambios h 
         LEFT JOIN usuario u ON h.ID_usuario = u.ID_usuario 
         WHERE 1=1";
 
+// Filtros dinámicos: se agregan solo si el usuario los seleccionó
 if (!empty($filtro_modulo)) {
     $sql .= " AND h.modulo = '" . mysqli_real_escape_string($conn, $filtro_modulo) . "'";
 }
@@ -47,8 +50,10 @@ $inicio = ($pagina_actual - 1) * $por_pagina;
 $sql_paginada = $sql . " LIMIT $inicio, $por_pagina";
 $result = mysqli_query($conn, $sql_paginada);
 
+// Consulta de usuarios activos para el filtro de selección
 $usuarios_result = mysqli_query($conn, "SELECT ID_usuario, nombre, apellido FROM usuario WHERE activo = 1 ORDER BY nombre");
 
+// Preserva filtros activos en los enlaces de paginación
 $params_paginacion = '';
 if (!empty($filtro_modulo)) $params_paginacion .= '&modulo=' . urlencode($filtro_modulo);
 if (!empty($filtro_accion)) $params_paginacion .= '&accion=' . urlencode($filtro_accion);
@@ -80,6 +85,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <h5 class="card-title mb-3">Filtros de Búsqueda</h5>
+                <!-- Filtros de búsqueda por módulo, acción, usuario y rango de fechas -->
                 <form method="GET" action="" class="row g-3">
                     <div class="col-md-2">
                         <label class="form-label">Módulo</label>
@@ -151,6 +157,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                             <?php
                             if (mysqli_num_rows($result) > 0) {
                                 while ($row = mysqli_fetch_assoc($result)) {
+                                    // Badge de color según el módulo
                                     $badge_modulo = '';
                                     switch($row['modulo']) {
                                         case 'producto': $badge_modulo = 'bg-primary'; break;
@@ -164,6 +171,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                                         default: $badge_modulo = 'bg-secondary';
                                     }
 
+                                    // Badge de color según la acción realizada
                                     $badge_accion = '';
                                     switch($row['accion']) {
                                         case 'crear': $badge_accion = 'bg-success'; break;
@@ -173,6 +181,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                                         default: $badge_accion = 'bg-secondary';
                                     }
 
+                                    // Icono Bootstrap por módulo
                                     $icono_modulo = '';
                                     switch($row['modulo']) {
                                         case 'producto': $icono_modulo = 'bi-box-seam'; break;
@@ -186,6 +195,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                                         default: $icono_modulo = 'bi-info-circle';
                                     }
 
+                                    // Formatea nombre del módulo (reemplaza guiones bajos)
                                     $modulo_nombre = str_replace('_', ' ', ucfirst($row['modulo']));
 
                                     echo "<tr>";
@@ -196,6 +206,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                                     echo "<td>" . htmlspecialchars($row['descripcion']) . "</td>";
                                     echo "</tr>";
                                 }
+                            // Sin resultados: mensaje informativo
                             } else {
                                 echo "<tr><td colspan='5' class='text-center'>No se encontraron registros</td></tr>";
                             }

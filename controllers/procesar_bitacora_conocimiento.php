@@ -14,14 +14,17 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     exit();
 }
 
+// Determinar si la acción es crear o editar un comando
 $accion = $_POST['accion'] ?? 'crear';
 $comando = trim($_POST['comando']);
 $sistema_operativo = trim($_POST['sistema_operativo']);
 $descripcion = trim($_POST['descripcion']);
 $categoria = $_POST['categoria'];
 
+// Lista blanca de categorías válidas para prevenir datos no autorizados
 $categorias_permitidas = ['optimizacion', 'redes', 'limpieza', 'diagnostico', 'atajo'];
 
+// Validar que todos los campos obligatorios estén presentes
 if (empty($comando) || empty($sistema_operativo) || empty($descripcion)) {
     mysqli_close($conn);
     echo "<script>alert('Error: Todos los campos son obligatorios'); window.history.back();</script>";
@@ -34,6 +37,7 @@ if (!in_array($categoria, $categorias_permitidas)) {
     exit();
 }
 
+// Si la acción es editar, actualizar el registro existente; de lo contrario, crear uno nuevo
 if ($accion === 'editar') {
     $id_comando = intval($_POST['id_comando']);
     $sql = "UPDATE bitacora_conocimiento SET comando=?, sistema_operativo=?, descripcion=?, categoria=? WHERE ID_comando=?";
@@ -51,7 +55,9 @@ if ($accion === 'editar') {
     $registro_id = 0;
 }
 
+// Ejecutar la consulta y redirigir con mensaje de éxito o error
 if ($stmt->execute()) {
+    // Si fue creación, obtener el ID generado para registrarlo en el historial
     if ($registro_accion === 'crear') {
         $registro_id = $conn->insert_id;
     }

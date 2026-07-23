@@ -7,7 +7,7 @@ $id_servicio = intval($_GET['id'] ?? 0);
 if ($id_servicio <= 0) { header("Location: reparaciones.php"); exit(); }
 if (!isset($_SESSION['usuario'])) { header("Location: ../index.php"); exit(); }
 
-// Get service with client info
+// Consulta principal: servicio con datos del cliente y técnico
 $sql = "SELECT s.*, c.nombre AS cliente_nombre, c.apellido AS cliente_apellido,
                c.telefono AS cliente_telefono, c.correo AS cliente_correo,
                c.identificacion, c.tipo_identificacion,
@@ -48,6 +48,7 @@ while ($d = $result_disp->fetch_assoc()) {
     $dispositivos[] = $d;
 }
 
+// Alerta flotante de éxito pasada por query string
 $mostrar_alerta = '';
 if (isset($_GET['mensaje'])) {
     $mensaje = htmlspecialchars($_GET['mensaje']);
@@ -66,6 +67,7 @@ $badge_clases = [
 ];
 ?>
 
+<!-- Auto-ocultar alertas y limpiar URL del parámetro "mensaje" -->
 <script>
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
@@ -113,8 +115,10 @@ if (window.location.search.includes('mensaje=')) {
 <?php $nav_base = '..'; include('includes/navbar.php'); ?>
 <?php echo $mostrar_alerta; ?>
 
+<!-- Contenedor principal de la página -->
 <div class="container py-4">
 
+    <!-- Encabezado del servicio: título, técnico y botones de navegación -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
         <div>
             <h2 class="mb-1">
@@ -137,6 +141,7 @@ if (window.location.search.includes('mensaje=')) {
         </div>
     </div>
 
+    <!-- Tarjeta de información del cliente: nombre, identificación, teléfono, correo, mano de obra -->
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body py-3">
             <div class="row">
@@ -170,6 +175,7 @@ if (window.location.search.includes('mensaje=')) {
         </div>
     </div>
 
+    <!-- Botones de acción: agregar dispositivo, PDFs y mano de obra -->
     <div class="d-flex flex-wrap gap-2 mb-4 align-items-start">
         <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#modalAgregarDispositivo">
             <i class="bi bi-plus-circle me-1"></i> Agregar Dispositivo
@@ -203,6 +209,7 @@ if (window.location.search.includes('mensaje=')) {
         </button>
     </div>
 
+    <!-- Sección de dispositivos: acordeón colapsable o mensaje vacío -->
     <?php if (empty($dispositivos)): ?>
     <div class="text-center text-muted py-5">
         <i class="bi bi-inbox fs-1"></i>
@@ -521,11 +528,13 @@ if (window.location.search.includes('mensaje=')) {
     </div>
 </div>
 
+<!-- Scripts JavaScript: AJAX para CRUD y persistencia del acordeón -->
 <script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script>
 var csrfToken = document.querySelector('input[name="csrf_token"]').value;
 var idServicio = <?php echo $id_servicio; ?>;
 
+// Muestra una alerta flotante temporal en la pantalla
 function mostrarAlerta(msg, tipo) {
     var div = document.createElement('div');
     div.className = 'alert alert-' + tipo + ' alert-dismissible fade show alert-flotante';
@@ -728,7 +737,7 @@ document.getElementById('formManoObraGeneral').addEventListener('submit', functi
     });
 });
 
-// --- Persistir acordeón abierto ---
+// --- Persistir acordeón abierto (guarda en localStorage y restaura al recargar) ---
 (function(){
     var KEY = 'servicio_acordeon_' + <?php echo $serv['ID_servicio']; ?>;
     var accordion = document.getElementById('accordionDispositivos');

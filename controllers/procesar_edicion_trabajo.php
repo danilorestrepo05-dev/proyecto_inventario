@@ -1,4 +1,5 @@
 <?php
+// Controlador para editar un trabajo de reparación existente, incluyendo gestión de garantía y bitácora
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
@@ -27,6 +28,7 @@ $mano_obra_costo = floatval($_POST['mano_obra_costo']);
 $notas_internas = trim($_POST['notas_internas']);
 $garantia_dias = intval($_POST['garantia_dias']);
 
+// Definir y validar los estados posibles del ciclo de vida de un trabajo
 $estados_permitidos = ['ingresado', 'diagnosticado', 'en_progreso', 'reparado', 'entregado', 'cancelado'];
 if (!in_array($estado, $estados_permitidos)) {
     mysqli_close($conn);
@@ -34,7 +36,7 @@ if (!in_array($estado, $estados_permitidos)) {
     exit();
 }
 
-// Obtener estado actual + ID_dispositivo
+// Obtener el estado actual para compararlo con el nuevo y detectar cambios
 $sql_estado = "SELECT t.estado, t.ID_dispositivo FROM trabajo t WHERE t.ID_trabajo = ?";
 $stmt_estado = $conn->prepare($sql_estado);
 $stmt_estado->bind_param("i", $id_trabajo);
@@ -45,20 +47,20 @@ $estado_anterior = $fila_estado['estado'];
 $id_dispositivo = $fila_estado['ID_dispositivo'];
 $stmt_estado->close();
 
-// Actualizar trabajo
+// Actualizar los datos principales del trabajo (diagnóstico, estado, costos, notas)
 $sql = "UPDATE trabajo SET tipo_trabajo=?, problema_reportado=?, diagnostico=?, estado=?, mano_obra_costo=?, notas_internas=? WHERE ID_trabajo=?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ssssssi", $tipo_trabajo, $problema_reportado, $diagnostico, $estado, $mano_obra_costo, $notas_internas, $id_trabajo);
 
 if ($stmt->execute()) {
-    // Actualizar datos del dispositivo si cambiaron
+    // Sincronizar los datos del dispositivo asociado al trabajo
     $sql_disp = "UPDATE dispositivo_servicio SET dispositivo=?, marca=?, modelo=?, numero_serie=? WHERE ID_dispositivo=?";
     $stmt_disp = $conn->prepare($sql_disp);
     $stmt_disp->bind_param("ssssi", $dispositivo, $marca, $modelo, $numero_serie, $id_dispositivo);
     $stmt_disp->execute();
     $stmt_disp->close();
 
-    // Registrar cambio de estado en bitácora
+    // Registrar en bitácora solo si el estado realmente cambió
     if ($estado_anterior !== $estado) {
         $sql_bitacora = "INSERT INTO bitacora_reparacion (ID_trabajo, ID_usuario, estado_anterior, estado_nuevo, observacion) VALUES (?, ?, ?, ?, ?)";
         $stmt_bitacora = $conn->prepare($sql_bitacora);
@@ -69,7 +71,7 @@ if ($stmt->execute()) {
         $stmt_bitacora->close();
     }
 
-    // Si se marca como entregado, registrar fecha de entrega
+    // Marcar la fecha de entrega cuando el trabajo pasa a estado "entregado"
     if ($estado === 'entregado' && $estado_anterior !== 'entregado') {
         $sql_entrega = "UPDATE trabajo SET fecha_entrega = NOW() WHERE ID_trabajo = ?";
         $stmt_entrega = $conn->prepare($sql_entrega);
@@ -78,7 +80,7 @@ if ($stmt->execute()) {
         $stmt_entrega->close();
     }
 
-    // Siempre guardar preferencia de garantía
+    // Crear o actualizar la garantía del trabajo según los días indicados
     if ($garantia_dias > 0) {
         $sql_check_gar = "SELECT ID_garantia FROM garantia WHERE ID_trabajo = ?";
         $stmt_check = $conn->prepare($sql_check_gar);
@@ -100,6 +102,7 @@ if ($stmt->execute()) {
         $stmt_garantia->execute();
         $stmt_garantia->close();
     } else {
+        // Si el usuario puso 0 días, eliminar la garantía existente
         $sql_del_gar = "DELETE FROM garantia WHERE ID_trabajo = ?";
         $stmt_del = @$conn->prepare($sql_del_gar);
         if ($stmt_del) {
@@ -109,7 +112,7 @@ if ($stmt->execute()) {
         }
     }
 
-    // Obtener ID_servicio para redirect
+    // Buscar el ID del servicio padre para registrar el historial
     $sql_serv = "SELECT ds.ID_servicio FROM dispositivo_servicio ds WHERE ds.ID_dispositivo=?";
     $stmt_serv = $conn->prepare($sql_serv);
     $stmt_serv->bind_param("i", $id_dispositivo);

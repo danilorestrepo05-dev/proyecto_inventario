@@ -13,6 +13,7 @@ if (!isset($_SESSION['usuario'])) {
 
 require(__DIR__ . '/../fpdf/fpdf.php');
 
+// IDs enviados desde el formulario (solo uno debe tener valor)
 $id_servicio = intval($_POST['id_servicio'] ?? 0);
 $id_trabajo = intval($_POST['id_trabajo'] ?? 0);
 
@@ -21,6 +22,7 @@ if ($id_servicio <= 0 && $id_trabajo <= 0) {
     exit();
 }
 
+// Modo servicio: obtiene el servicio, sus dispositivos y trabajos asociados
 if ($id_servicio > 0) {
     $sql = "SELECT s.*, c.nombre AS cliente_nombre, c.apellido AS cliente_apellido,
                    c.identificacion, c.tipo_identificacion, c.telefono, c.correo
@@ -39,6 +41,7 @@ if ($id_servicio > 0) {
         exit();
     }
 
+    // Obtiene todos los dispositivos del servicio
     $sql_disp = "SELECT * FROM dispositivo_servicio WHERE ID_servicio = ? ORDER BY ID_dispositivo";
     $stmt_disp = $conn->prepare($sql_disp);
     $stmt_disp->bind_param("i", $id_servicio);
@@ -46,6 +49,7 @@ if ($id_servicio > 0) {
     $result_disp = $stmt_disp->get_result();
     $stmt_disp->close();
 
+    // Para cada dispositivo, carga sus trabajos asociados
     $dispositivos = [];
     while ($d = $result_disp->fetch_assoc()) {
         $sql_trab = "SELECT * FROM trabajo WHERE ID_dispositivo = ? ORDER BY ID_trabajo";
@@ -65,7 +69,8 @@ if ($id_servicio > 0) {
     $modo = 'servicio';
     $cliente_nombre = trim(($serv['cliente_nombre'] ?? '') . ' ' . ($serv['cliente_apellido'] ?? ''));
 } else {
-    $sql = "SELECT t.*, ds.dispositivo, ds.marca, ds.modelo, ds.numero_serie, ds.ID_dispositivo,
+    // Modo trabajo individual: obtiene un solo trabajo con sus relaciones
+    $sql = "SELECT t.*, ds.dispositivo, ds.marca, ds.modelo, ds.numero_serie,
                    s.ID_servicio,
                    c.nombre AS cliente_nombre, c.apellido AS cliente_apellido,
                    c.identificacion, c.tipo_identificacion, c.telefono, c.correo
@@ -92,10 +97,13 @@ if ($id_servicio > 0) {
     $cliente_nombre = trim(($trab['cliente_nombre'] ?? '') . ' ' . ($trab['cliente_apellido'] ?? ''));
 }
 
+// Clase PDF personalizada con acceso al umbral de salto de página
 class PDF extends FPDF {
     function getPageBreakTrigger() { return $this->PageBreakTrigger; }
+    // Cabecera vacía: se maneja manualmente
     function Header() {
     }
+    // Pie de página con datos de contacto de la empresa
     function Footer() {
         $this->SetY(-20);
         $this->SetFont('Arial', '', 8);
@@ -110,6 +118,7 @@ class PDF extends FPDF {
     }
 }
 
+// Salta de página si no hay suficiente espacio vertical para el contenido
 function verificar_cierre($pdf, $espacio) {
     if ($pdf->GetY() + $espacio > $pdf->getPageBreakTrigger()) {
         $pdf->AddPage();
@@ -118,6 +127,7 @@ function verificar_cierre($pdf, $espacio) {
     return false;
 }
 
+// Dibuja encabezado de sección con fondo oscuro y texto blanco
 function render_seccion_header($pdf, $titulo) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->SetFillColor(26, 32, 53);
@@ -127,6 +137,7 @@ function render_seccion_header($pdf, $titulo) {
     $pdf->Ln(2);
 }
 
+// Renderiza los datos del cliente: nombre, identificación, teléfono y correo
 function render_cliente($pdf, $rep) {
     render_seccion_header($pdf, 'INFORMACIÓN DEL CLIENTE');
 
@@ -136,6 +147,7 @@ function render_cliente($pdf, $rep) {
     $pdf->Cell(40, 6, utf8_decode('Cliente:'), 0, 0);
     $pdf->Cell(0, 6, utf8_decode($cliente_nombre), 0, 1);
 
+    // Formatea número de identificación con prefijo según tipo
     $ident_texto = '';
     if (!empty($rep['identificacion'])) {
         $tipo = $rep['tipo_identificacion'] ?? '';
@@ -162,6 +174,7 @@ function render_cliente($pdf, $rep) {
     $pdf->Ln(3);
 }
 
+// Renderiza información del dispositivo: tipo, marca/modelo y número de serie
 function render_dispositivo($pdf, $disp) {
     render_seccion_header($pdf, 'INFORMACIÓN DEL DISPOSITIVO');
 
@@ -180,6 +193,7 @@ function render_dispositivo($pdf, $disp) {
     $pdf->Ln(3);
 }
 
+// Renderiza el problema reportado y tipo de trabajo
 function render_trabajo($pdf, $trab) {
     render_seccion_header($pdf, 'PROBLEMA REPORTADO');
 
@@ -197,6 +211,7 @@ $pdf->AliasNbPages();
 $pdf->AddPage();
 $pdf->SetAutoPageBreak(true, 25);
 
+// Logo de la empresa en el encabezado del PDF
 $logo = __DIR__ . '/../assets/img/logo_pdf.png';
 if (file_exists($logo)) {
     $pdf->Image($logo, 60, 10, 0, 30);
@@ -209,8 +224,10 @@ $pdf->SetFont('Arial', '', 9);
 $pdf->Cell(0, 5, utf8_decode('Fecha: ' . date('d/m/Y H:i')), 0, 1, 'C');
 $pdf->Ln(4);
 
+// Sección de datos del cliente
 render_cliente($pdf, $modo === 'servicio' ? $serv : $trab);
 
+// Modo servicio: itera dispositivos y renderiza cada uno con sus trabajos
 if ($modo === 'servicio') {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->SetFillColor(26, 32, 53);
@@ -234,6 +251,7 @@ if ($modo === 'servicio') {
             $pdf->Ln(5);
         }
     }
+// Modo trabajo: renderiza dispositivo, problema y referencia cruzada
 } else {
     verificar_cierre($pdf, 40);
     render_dispositivo($pdf, $trab);

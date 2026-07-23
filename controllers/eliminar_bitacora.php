@@ -9,6 +9,7 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
+// Solo los administradores pueden eliminar comandos de la bitácora
 if ($_SESSION['rol'] !== 'Admin') {
     header("Location: ../views/bitacora_comandos.php?error=No tiene permisos");
     exit();
@@ -24,8 +25,10 @@ if (!csrf_validate($_GET['csrf_token'])) {
     exit();
 }
 
+// Sanitizar el ID recibido por parámetro GET
 $id = intval($_GET['id']);
 
+// Consultar el nombre del comando antes de eliminarlo para registrarlo en el historial
 $sql_select = "SELECT comando FROM bitacora_conocimiento WHERE ID_comando = ?";
 $stmt_select = $conn->prepare($sql_select);
 $stmt_select->bind_param("i", $id);
@@ -43,6 +46,7 @@ $fila = $resultado->fetch_assoc();
 $nombre_comando = $fila['comando'];
 $stmt_select->close();
 
+// Eliminar el comando de la base de datos por su ID
 $sql_delete = "DELETE FROM bitacora_conocimiento WHERE ID_comando = ?";
 $stmt_delete = $conn->prepare($sql_delete);
 $stmt_delete->bind_param("i", $id);

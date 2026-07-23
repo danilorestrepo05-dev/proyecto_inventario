@@ -1,4 +1,5 @@
 <?php
+// Controlador para agregar un repuesto a un trabajo: registra el uso, crea venta automática y reduce stock
 session_start();
 include("../config/conexion.php");
 include("../config/csrf.php");
@@ -26,7 +27,7 @@ if ($id_producto <= 0 || $cantidad <= 0) {
     exit();
 }
 
-// Verificar stock disponible
+// Validar que haya suficiente stock antes de continuar
 $sql_stock = "SELECT stock, nombre FROM producto WHERE ID_producto = ?";
 $stmt_stock = $conn->prepare($sql_stock);
 $stmt_stock->bind_param("i", $id_producto);
@@ -41,7 +42,7 @@ if ($producto_info['stock'] < $cantidad) {
     exit();
 }
 
-// Obtener ID_cliente del servicio a través del trabajo
+// Buscar el cliente dueño del servicio para vincularlo a la venta automática
 $sql_cliente = "SELECT s.ID_cliente
                 FROM trabajo t
                 INNER JOIN dispositivo_servicio ds ON t.ID_dispositivo = ds.ID_dispositivo
@@ -63,7 +64,7 @@ $id_cliente = $cliente_row['ID_cliente'];
 $fecha_venta = date('Y-m-d');
 $total_venta = $cantidad * $precio_unitario;
 
-// Manejar archivo adjunto
+// Guardar la factura del proveedor si se adjuntó un archivo
 $ruta_adjunto = '';
 if (isset($_FILES['factura_proveedor']) && $_FILES['factura_proveedor']['error'] === UPLOAD_ERR_OK) {
     $directorio = __DIR__ . '/../assets/uploads/garantias/';
@@ -76,10 +77,11 @@ if (isset($_FILES['factura_proveedor']) && $_FILES['factura_proveedor']['error']
     move_uploaded_file($_FILES['factura_proveedor']['tmp_name'], $directorio . $nombre_archivo);
 }
 
+// Iniciar transacción para garantizar atomicidad de las 5 operaciones
 $conn->begin_transaction();
 
 try {
-    // 1. Insertar repuesto
+    // Paso 1: Registrar el repuesto usado en el trabajo
     $sql = "INSERT INTO reparacion_repuesto (ID_trabajo, ID_producto, cantidad, precio_unitario, garantia_proveedor_dias, factura_proveedor_adjunto) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("iiiids", $id_trabajo, $id_producto, $cantidad, $precio_unitario, $garantia_proveedor_dias, $ruta_adjunto);
@@ -90,7 +92,7 @@ try {
     $id_reparacion_repuesto = $conn->insert_id;
     $stmt->close();
 
-    // 2. Crear venta automática
+    // Paso 2: Crear una orden de venta para facturar el repuesto al cliente
     $sql_venta = "INSERT INTO orden_venta (ID_cliente, estado, total, fecha, origen) VALUES (?, 'completada', ?, ?, 'servicio')";
     $stmt_venta = $conn->prepare($sql_venta);
     $stmt_venta->bind_param("ids", $id_cliente, $total_venta, $fecha_venta);
@@ -100,7 +102,7 @@ try {
     $id_orden_venta = $conn->insert_id;
     $stmt_venta->close();
 
-    // 3. Insertar detalle de venta
+    // Paso 3: Agregar el producto como línea de detalle de la venta
     $sql_detalle = "INSERT INTO detalle_orden_venta (ID_orden_venta, ID_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
     $stmt_detalle = $conn->prepare($sql_detalle);
     $stmt_detalle->bind_param("iiid", $id_orden_venta, $id_producto, $cantidad, $precio_unitario);
@@ -109,7 +111,7 @@ try {
     }
     $stmt_detalle->close();
 
-    // 4. Vincular repuesto con venta
+    // Paso 4: Relacionar el repuesto registrado con su orden de venta correspondiente
     $sql_link = "UPDATE reparacion_repuesto SET ID_orden_venta = ? WHERE ID_reparacion_repuesto = ?";
     $stmt_link = $conn->prepare($sql_link);
     $stmt_link->bind_param("ii", $id_orden_venta, $id_reparacion_repuesto);
@@ -118,7 +120,7 @@ try {
     }
     $stmt_link->close();
 
-    // 5. Reducir stock
+    // Paso 5: Descontar la cantidad usada del inventario
     $sql_stock = "UPDATE producto SET stock = stock - ? WHERE ID_producto = ?";
     $stmt_stock = $conn->prepare($sql_stock);
     $stmt_stock->bind_param("ii", $cantidad, $id_producto);
@@ -127,6 +129,7 @@ try {
     }
     $stmt_stock->close();
 
+    // Confirmar toda la transacción y registrar en el historial
     $conn->commit();
 
     registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto "' . $producto_info['nombre'] . '" (x' . $cantidad . ') agregado al trabajo #' . $id_trabajo);

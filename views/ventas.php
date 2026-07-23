@@ -7,6 +7,7 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 
+// Alertas de éxito y error por parámetros GET
 $mostrar_alerta = '';
 if (isset($_GET['mensaje'])) {
     $mensaje = htmlspecialchars($_GET['mensaje']);
@@ -29,6 +30,7 @@ if (isset($_GET['error'])) {
 
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
 
+// Consulta principal: une órdenes de venta con detalles y productos
 $consulta = "
 SELECT 
     ov.ID_orden_venta,
@@ -44,6 +46,7 @@ JOIN detalle_orden_venta dov ON ov.ID_orden_venta = dov.ID_orden_venta
 JOIN producto p ON dov.ID_producto = p.ID_producto
 ORDER BY ov.ID_orden_venta DESC
 ";
+// Ejecuta consulta para obtener total de registros
 $resultado = $conn->query($consulta);
 
 // Paginación
@@ -53,12 +56,13 @@ $total_registros = $resultado->num_rows;
 $total_paginas = max(1, ceil($total_registros / $por_pagina));
 $inicio = ($pagina_actual - 1) * $por_pagina;
 
-// Re-consultar con LIMIT
+// Re-consulta aplicando LIMIT para obtener solo la página actual
 $consulta_paginada = $consulta . " LIMIT $inicio, $por_pagina";
 $resultado_paginado = $conn->query($consulta_paginada);
 ?>
 
 <script>
+// Auto-ocultar alertas después de 5 segundos
 setTimeout(function() {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
@@ -101,6 +105,7 @@ setTimeout(function() {
     </div>
   </div>
 
+  <!-- Filtro de búsqueda por texto -->
   <div class="mb-3">
     <input type="text" id="busqueda" placeholder="Buscar..." class="form-control rounded-pill" style="max-width: 300px;">
   </div>
@@ -116,12 +121,14 @@ setTimeout(function() {
           <th>Precio Unit.</th>
           <th>Subtotal</th>
           <th>Fecha</th>
+          <!-- Columna origen: indica si la venta es por servicio o manual -->
           <th>Origen</th>
           <?php if ($rol === 'Admin'): ?><th class="th-opciones">Opciones</th><?php endif; ?>
         </tr>
       </thead>
       <tbody>
         <?php
+        // Renderiza cada fila de la tabla de ventas
         if ($total_registros > 0) {
           while ($fila = $resultado_paginado->fetch_assoc()) {
             echo "<tr>";
@@ -139,6 +146,7 @@ setTimeout(function() {
             echo "<td>$" . number_format($fila['precio_unitario'], 0, ',', '.') . "</td>";
             echo "<td>$" . number_format($fila['subtotal'], 0, ',', '.') . "</td>";
             echo "<td>{$fila['fecha']}</td>";
+            // Badge de origen: servicio o manual
             echo "<td>";
             if ($fila['origen'] === 'servicio') {
                 echo "<span class='badge bg-info'><i class='bi bi-tools'></i> Servicio</span>";
@@ -154,12 +162,14 @@ setTimeout(function() {
             }
             echo "</tr>";
           }
+        // Mensaje cuando no hay registros
         } else {
           echo "<tr><td colspan='" . ($rol === 'Admin' ? 9 : 8) . "' class='text-center'>Sin datos aún</td></tr>";
         }
         ?>
       </tbody>
     </table>
+<?php // Bloque de paginación solo si hay más de una página ?>
 <?php if ($total_paginas > 1): ?>
 <div class="pagination-container">
     <nav aria-label="Paginación">
@@ -182,6 +192,7 @@ setTimeout(function() {
         </ul>
     </nav>
 </div>
+<!-- Texto informativo del rango de registros mostrados -->
 <p class="pagination-info">Mostrando <?php echo $inicio + 1; ?>-<?php echo min($inicio + $por_pagina, $total_registros); ?> de <?php echo $total_registros; ?> registros</p>
 <?php endif; ?>
   </div>
