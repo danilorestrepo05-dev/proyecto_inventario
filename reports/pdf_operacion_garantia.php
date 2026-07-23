@@ -167,9 +167,9 @@ class PDF extends FPDF {
     }
 }
 
-function draw_header_bar($pdf, $title) {
+function draw_header_bar($pdf, $title, $color = [26, 32, 53]) {
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->SetFillColor(26, 32, 53);
+    $pdf->SetFillColor($color[0], $color[1], $color[2]);
     $pdf->SetTextColor(255, 255, 255);
     $pdf->Cell(0, 7, utf8_decode('  ' . $title), 0, 1, 'L', true);
     $pdf->SetTextColor(0, 0, 0);
@@ -210,7 +210,7 @@ function draw_client_info($pdf, $row) {
 }
 
 function draw_device_section($pdf, $disp, $garantias_trabajo = [], $incluir_garantia = false) {
-    draw_header_bar($pdf, 'INFORMACIÓN DEL DISPOSITIVO');
+    draw_header_bar($pdf, 'INFORMACIÓN DEL DISPOSITIVO', [35, 55, 75]);
     $pdf->SetFont('Arial', '', 9);
     $pdf->Cell(40, 6, utf8_decode('Dispositivo:'), 0, 0);
     $pdf->Cell(0, 6, utf8_decode($disp['dispositivo'] ?? ''), 0, 1);
