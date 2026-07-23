@@ -98,11 +98,11 @@ if (window.location.search.includes('mensaje=')) {
 </head>
 <style>
     #accordionDispositivos .accordion-button {
-        background-color: #e9ecef;
+        background-color: #ffffff;
         color: #1a2035;
     }
     #accordionDispositivos .accordion-button:not(.collapsed) {
-        background-color: #d6dbe2;
+        background-color: #e9ecef;
         color: #1a2035;
     }
     #accordionDispositivos .accordion-button::after {
