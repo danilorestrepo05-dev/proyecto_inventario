@@ -976,3 +976,14 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: PDF Certificado de Trabajo con garantías por ítem y T&C dinámicos
 - **`reports/pdf_operacion_garantia.php`**: Reescrito completamente. Consultas con JOIN a tabla `garantia` para fechas de mano de obra por cada trabajo/dispositivo. Columna "Garantía hasta" condicional en tablas de repuestos y programas: solo aparece si al menos 1 ítem tiene garantía. Mano de obra de garantía se muestra por dispositivo (no global). Reemplazada sección fija "Garantía" por `draw_terminos_condiciones()` dinámica que se adapta según lo que exista (mano de obra, repuestos con/sin garantía, programas con/sin garantía). Parámetro `incluir_garantia` (0/1) leído desde POST. Función `calcular_datos_garantia()` analiza repuestos y programas para determinar qué cláusulas incluir.
+
+### 22/07/2026 — Corrección: T&C y formato en Certificado de Trabajo
+
+#### Corregido: Términos y condiciones no se mostraban sin seleccionar garantía
+- **`reports/pdf_operacion_garantia.php`**: Los T&C estaban envueltos en `if ($incluir_garantia)` y solo se renderizaban al marcar el checkbox. Ahora se muestran siempre independientemente del checkbox de garantía, ya que son condiciones generales del servicio.
+
+#### Corregido: Caracter `→` se mostraba como `?` en fechas de garantía
+- **`reports/pdf_operacion_garantia.php`**: Reemplazado `→` por `-` en el formato de fechas de mano de obra (`21/07/2026 - 19/09/2026`) ya que FPDF no renderiza correctamente ese carácter Unicode.
+
+#### Corregido: T&C se mostraban como lista vertical ocupando mucho espacio vertical
+- **`reports/pdf_operacion_garantia.php`**: Reescrita `draw_terminos_condiciones()` para concatenar todas las cláusulas en un solo párrafo corrido con `implode(' ', $clausulas)` y renderizar con un solo `MultiCell`. Ocupan el ancho completo de la página y se enumeran inline.

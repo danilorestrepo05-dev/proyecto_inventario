@@ -229,7 +229,7 @@ function draw_device_section($pdf, $disp, $garantias_trabajo = [], $incluir_gara
             $pdf->SetTextColor(0, 100, 0);
             $pdf->Cell(40, 6, utf8_decode('Garantía mano de obra:'), 0, 0);
             $pdf->SetFont('Arial', '', 9);
-            $pdf->Cell(0, 6, utf8_decode("{$dias} días ({$fecha_inicio} → {$fecha_fin})"), 0, 1);
+            $pdf->Cell(0, 6, utf8_decode("{$dias} días ({$fecha_inicio} - {$fecha_fin})"), 0, 1);
             $pdf->SetTextColor(0, 0, 0);
         }
     }
@@ -356,50 +356,38 @@ function draw_terminos_condiciones($pdf, $datos) {
     draw_header_bar($pdf, 'TÉRMINOS Y CONDICIONES');
     $pdf->SetFont('Arial', '', 8);
 
-    $lineas = [];
-    $lineas[] = "1. La garantía cubre únicamente el trabajo técnico realizado por nuestro personal autorizado.";
-    $lineas[] = "2. No aplica por mal uso, daños físicos por golpes, líquidos derramados, sobretensión eléctrica,";
-    $lineas[] = "   o manipulación por terceros ajenos a CompuMasterLD.";
-    $lineas[] = "3. Para hacer válida la garantía, el cliente debe presentar este certificado de servicio.";
-    $lineas[] = "4. El tiempo máximo para presentar reclamaciones es de 30 días calendario después de vencido";
-    $lineas[] = "   el plazo de garantía.";
-    $lineas[] = "5. CompuMasterLD no se responsabiliza por datos perdidos durante el proceso de reparación.";
+    $clausulas = [];
+    $clausulas[] = "1. La garantía cubre únicamente el trabajo técnico realizado por nuestro personal autorizado.";
+    $clausulas[] = "2. No aplica por mal uso, daños físicos por golpes, líquidos derramados, sobretensión eléctrica o manipulación por terceros ajenos a CompuMasterLD.";
+    $clausulas[] = "3. Para hacer válida cualquier reclamación, el cliente debe presentar este certificado de servicio.";
+    $clausulas[] = "4. El tiempo máximo para presentar reclamaciones es de 30 días calendario después de vencido el plazo de garantía.";
+    $clausulas[] = "5. CompuMasterLD no se responsabiliza por datos perdidos durante el proceso de reparación.";
 
     $num = 6;
 
     if ($datos['tiene_gar_mano_obra']) {
-        $lineas[] = "{$num}. La mano de obra tiene una garantía individual por trabajo según se indica";
-        $lineas[] = "   en cada sección de dispositivo. Los plazos cuentan a partir de la fecha de entrega.";
+        $clausulas[] = "{$num}. La mano de obra tiene una garantía individual por trabajo según se indica en cada sección de dispositivo. Los plazos cuentan a partir de la fecha de entrega.";
         $num++;
     }
-
     if ($datos['tiene_gar_repuestos']) {
-        $lineas[] = "{$num}. Los repuestos instalados tienen garantía del proveedor por el plazo indicado";
-        $lineas[] = "   en cada ítem de la tabla de repuestos.";
+        $clausulas[] = "{$num}. Los repuestos instalados tienen garantía del proveedor por el plazo indicado en cada ítem de la tabla de repuestos.";
         $num++;
     }
-
     if ($datos['sin_gar_repuestos']) {
-        $lineas[] = "{$num}. Algunos repuestos fueron instalados sin garantía por parte del proveedor,";
-        $lineas[] = "   el cliente asume la responsabilidad de los mismos.";
+        $clausulas[] = "{$num}. Algunos repuestos fueron instalados sin garantía por parte del proveedor, el cliente asume la responsabilidad de los mismos.";
         $num++;
     }
-
     if ($datos['tiene_gar_programas']) {
-        $lineas[] = "{$num}. Los programas instalados tienen garantía por el plazo indicado en cada ítem";
-        $lineas[] = "   de la tabla de programas.";
+        $clausulas[] = "{$num}. Los programas instalados tienen garantía por el plazo indicado en cada ítem de la tabla de programas.";
         $num++;
     }
-
     if ($datos['sin_gar_programas']) {
-        $lineas[] = "{$num}. Algunos programas fueron instalados sin garantía, su uso queda bajo";
-        $lineas[] = "   responsabilidad del cliente.";
+        $clausulas[] = "{$num}. Algunos programas fueron instalados sin garantía, su uso queda bajo responsabilidad del cliente.";
         $num++;
     }
 
-    foreach ($lineas as $linea) {
-        $pdf->MultiCell(0, 4, utf8_decode($linea));
-    }
+    $texto = implode(' ', $clausulas);
+    $pdf->MultiCell(0, 4, utf8_decode($texto));
     $pdf->Ln(3);
 }
 
@@ -489,9 +477,7 @@ if ($modo_servicio) {
 draw_repuestos_table($pdf, $result_rep, $incluir_garantia);
 draw_programas_table($pdf, $result_prog, $incluir_garantia);
 
-if ($incluir_garantia) {
-    $datos_gar = calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispositivo ?? [], $trabajos_por_dispositivo ?? []);
-    draw_terminos_condiciones($pdf, $datos_gar);
-}
+$datos_gar = calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispositivo ?? [], $trabajos_por_dispositivo ?? []);
+draw_terminos_condiciones($pdf, $datos_gar);
 
 $pdf->Output('I', 'certificado_trabajo_' . date('Y-m-d') . '.pdf');
