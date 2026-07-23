@@ -287,7 +287,7 @@ function draw_repuestos_table($pdf, $result_rep, $incluir_garantia) {
         $pdf->Cell($col_ancho_pu, 5, '$' . number_format($r['precio_unitario'], 0, ',', '.'), 1, 0, 'R');
         $pdf->Cell($col_ancho_sub, 5, '$' . number_format($subtotal, 0, ',', '.'), 1, 0, 'R');
         if ($incluir_garantia) {
-            $gar_texto = 'Sin garantía';
+            $gar_texto = 'Sin garantia';
             if (!empty($r['garantia_proveedor_dias']) && $r['garantia_proveedor_dias'] > 0 && !empty($r['gar_trabajo_fin'])) {
                 $gar_texto = date('d/m/Y', strtotime($r['gar_trabajo_fin']));
             }
@@ -340,7 +340,7 @@ function draw_programas_table($pdf, $result_prog, $incluir_garantia) {
         $pdf->Cell($col_ancho_pu, 5, '$' . number_format(floatval($p['costo'] ?? 0), 0, ',', '.'), 1, 0, 'R');
         $pdf->Cell($col_ancho_sub, 5, '$' . number_format($prog_sub, 0, ',', '.'), 1, 0, 'R');
         if ($incluir_garantia) {
-            $gar_texto = 'Sin garantía';
+            $gar_texto = 'Sin garantia';
             if (!empty($p['gar_dias']) && !empty($p['gar_fecha_fin'])) {
                 $gar_texto = date('d/m/Y', strtotime($p['gar_fecha_fin']));
             }
