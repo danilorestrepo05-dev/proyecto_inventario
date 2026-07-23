@@ -33,7 +33,7 @@ if (isset($_SESSION['usuario'])) {
         <div class="card login-card shadow-lg border-0">
             <div class="card-body p-3 p-md-4">
                 <div class="text-center mb-2">
-                    <img src="assets/img/sgi-software (1).png" alt="SGI" class="login-center-logo mb-2">
+                    <img src="assets/img/compumasterldlogo.png" alt="CompuMasterLD" class="login-center-logo mb-2">
                     <h5 class="fw-bold text-dark">Bienvenido</h5>
                     <p class="text-muted small mb-0">Inicia sesión para continuar</p>
                 </div>

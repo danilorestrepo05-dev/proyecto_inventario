@@ -56,7 +56,7 @@ setTimeout(function() {
 <div class="container py-3 dashboard-container">
     <div class="text-center mb-3">
         <div class="logo">
-            <img src="assets/img/sgi-software (1).png" alt="SGI">
+            <img src="assets/img/compumasterldlogo.png" alt="CompuMasterLD">
         </div>
         <h5 class="mt-2 fw-semibold">Bienvenido al Sistema</h5>
         <p class="text-muted small mb-0">Seleccione un módulo para continuar</p>
