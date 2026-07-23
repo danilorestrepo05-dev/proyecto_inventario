@@ -25,7 +25,7 @@ if (isset($_SESSION['usuario'])) {
                 <img src="assets/img/sgi-software (1).png" alt="SGI" height="36" class="login-logo-img">
                 <span class="fw-bold brand-text">SGI</span>
             </a>
-            <span class="text-white-50 small d-none d-sm-inline">Sistema de Gestión de Inventarios</span>
+            <span class="text-white-50 small d-none d-sm-inline">Sistema de Gestión Integral</span>
         </div>
     </nav>
 

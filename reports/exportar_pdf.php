@@ -26,7 +26,7 @@ if (!in_array($tipo, $tipo_permitidos)) {
 class PDF extends FPDF {
     function Header() {
         $this->SetFont('Arial', 'B', 16);
-        $this->Cell(0, 10, utf8_decode('SGI Sistema de Gestión de Inventarios'), 0, 1, 'C');
+        $this->Cell(0, 10, utf8_decode('SGI - Sistema de Gestión Integral'), 0, 1, 'C');
         $this->SetFont('Arial', '', 10);
         $this->Cell(0, 5, 'Fecha: ' . date('d/m/Y H:i'), 0, 1, 'C');
         $this->Ln(5);

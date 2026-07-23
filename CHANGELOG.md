@@ -1,4 +1,4 @@
-# SGI - Sistema de Gestión de Inventarios
+# SGI - Sistema de Gestión Integral
 ## Documentación del Proyecto
 
 ---
@@ -7,7 +7,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Nombre** | SGI - Sistema de Gestión de Inventarios |
+| **Nombre** | SGI - Sistema de Gestión Integral |
 | **Tecnologías** | PHP 8.x, MySQL, Bootstrap 5, Bootstrap Icons |
 | **Servidor** | XAMPP (Apache + MySQL) |
 | **Arquitectura** | MVC (Modelo-Vista-Controlador) |
