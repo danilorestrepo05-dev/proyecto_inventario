@@ -1000,3 +1000,11 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: Columna "Garantía hasta" muestra "Sin garantía" en vez de guion
 - **`reports/pdf_operacion_garantia.php`**: Cuando un repuesto o programa no tiene garantía, la columna "Garantía hasta" ahora muestra "Sin garantía" en lugar de `-` para mayor claridad visual.
+
+### 22/07/2026 — Selectores de garantía y color acordeón dispositivos
+
+#### Actualizado: Selector de días de garantía para repuestos y programas
+- **`views/editar_trabajo.php`**: Inputs numéricos de `garantia_proveedor_dias` (agregar/editar repuesto) y `gar_dias` (agregar/editar programa) reemplazados por selects con opciones: Sin garantía, 1 mes, 2 meses, 3 meses, 6 meses, 12 meses. Consistente con el selector de mano de obra de trabajo.
+
+#### Actualizado: Color de fondo del acordeón de dispositivos
+- **`views/detalle_servicio.php`**: Agregado bloque `<style>` que cambia el fondo del botón del acordeón de dispositivos de azul Bootstrap a gris claro (`#e9ecef` colapsado / `#d6dbe2` expandido) con texto oscuro `#1a2035`, evitando que se mezcle con el fondo azul de la pantalla.

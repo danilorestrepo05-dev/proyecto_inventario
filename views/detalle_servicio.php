@@ -96,6 +96,19 @@ if (window.location.search.includes('mensaje=')) {
     <link rel="stylesheet" href="../assets/css/estilos.css">
     <title>Servicio #<?php echo $id_servicio; ?></title>
 </head>
+<style>
+    #accordionDispositivos .accordion-button {
+        background-color: #e9ecef;
+        color: #1a2035;
+    }
+    #accordionDispositivos .accordion-button:not(.collapsed) {
+        background-color: #d6dbe2;
+        color: #1a2035;
+    }
+    #accordionDispositivos .accordion-button::after {
+        filter: invert(30%);
+    }
+</style>
 <body class="custom-body">
 <?php $nav_base = '..'; include('includes/navbar.php'); ?>
 <?php echo $mostrar_alerta; ?>

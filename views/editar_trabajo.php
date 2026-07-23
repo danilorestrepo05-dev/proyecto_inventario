@@ -510,7 +510,14 @@ if (window.location.search.includes('mensaje=')) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Garant&iacute;a del Proveedor (d&iacute;as)</label>
-                        <input type="number" class="form-control" name="garantia_proveedor_dias" min="0" value="0">
+                        <select class="form-select" name="garantia_proveedor_dias">
+                            <option value="0">Sin garant&iacute;a</option>
+                            <option value="30">1 mes (30 d&iacute;as)</option>
+                            <option value="60">2 meses (60 d&iacute;as)</option>
+                            <option value="90">3 meses (90 d&iacute;as)</option>
+                            <option value="180">6 meses (180 d&iacute;as)</option>
+                            <option value="365">12 meses (365 d&iacute;as)</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Factura/Adjunto del Proveedor</label>
@@ -572,7 +579,14 @@ if (window.location.search.includes('mensaje=')) {
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">D&iacute;as de garant&iacute;a</label>
-                            <input type="number" class="form-control" name="gar_dias" min="0" placeholder="0 = sin garant&iacute;a" value="0">
+                            <select class="form-select" name="gar_dias">
+                                <option value="0">Sin garant&iacute;a</option>
+                                <option value="30">1 mes (30 d&iacute;as)</option>
+                                <option value="60">2 meses (60 d&iacute;as)</option>
+                                <option value="90">3 meses (90 d&iacute;as)</option>
+                                <option value="180">6 meses (180 d&iacute;as)</option>
+                                <option value="365">12 meses (365 d&iacute;as)</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Fecha inicio garant&iacute;a</label>
@@ -661,7 +675,14 @@ if (window.location.search.includes('mensaje=')) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Garant&iacute;a del Proveedor (d&iacute;as)</label>
-                        <input type="number" class="form-control" name="garantia_proveedor_dias" id="edit_rep_garantia" min="0">
+                        <select class="form-select" name="garantia_proveedor_dias" id="edit_rep_garantia">
+                            <option value="0">Sin garant&iacute;a</option>
+                            <option value="30">1 mes (30 d&iacute;as)</option>
+                            <option value="60">2 meses (60 d&iacute;as)</option>
+                            <option value="90">3 meses (90 d&iacute;as)</option>
+                            <option value="180">6 meses (180 d&iacute;as)</option>
+                            <option value="365">12 meses (365 d&iacute;as)</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Factura/Adjunto del Proveedor</label>
@@ -727,7 +748,14 @@ if (window.location.search.includes('mensaje=')) {
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">D&iacute;as de garant&iacute;a</label>
-                            <input type="number" class="form-control" name="gar_dias" id="edit_prog_gar_dias" min="0" placeholder="0 = sin garant&iacute;a" value="0">
+                            <select class="form-select" name="gar_dias" id="edit_prog_gar_dias">
+                                <option value="0">Sin garant&iacute;a</option>
+                                <option value="30">1 mes (30 d&iacute;as)</option>
+                                <option value="60">2 meses (60 d&iacute;as)</option>
+                                <option value="90">3 meses (90 d&iacute;as)</option>
+                                <option value="180">6 meses (180 d&iacute;as)</option>
+                                <option value="365">12 meses (365 d&iacute;as)</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Fecha inicio garant&iacute;a</label>
