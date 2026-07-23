@@ -1008,3 +1008,20 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: Color de fondo del acordeón de dispositivos
 - **`views/detalle_servicio.php`**: Agregado bloque `<style>` que cambia el fondo del botón del acordeón de dispositivos de azul Bootstrap a gris claro (`#e9ecef` colapsado / `#d6dbe2` expandido) con texto oscuro `#1a2035`, evitando que se mezcle con el fondo azul de la pantalla.
+
+### 22/07/2026 — Venta automática por repuestos de servicio técnico
+
+#### Nuevo: Columna origen en tabla orden_venta
+- **`sql_modulo_reparaciones.sql`**: Agregado `ALTER TABLE orden_venta ADD COLUMN origen VARCHAR(20) NOT NULL DEFAULT 'manual'` para identificar ventas manuales vs generadas desde servicio técnico. Agregado `ALTER TABLE reparacion_repuesto ADD COLUMN ID_orden_venta INT DEFAULT NULL` para vincular repuesto con su venta.
+
+#### Nuevo: Creación automática de venta al agregar repuesto
+- **`controllers/procesar_repuesto_reparacion.php`**: Al insertar un repuesto, se crea automáticamente una `orden_venta` con `estado='completada'` y `origen='servicio'`, se inserta el detalle en `detalle_orden_venta`, y se almacena el `ID_orden_venta` en `reparacion_repuesto`. Obtiene `ID_cliente` del servicio a través de la cadena trabajo → dispositivo_servicio → servicio.
+
+#### Actualizado: Edición de repuesto actualiza venta vinculada
+- **`controllers/editar_repuesto_reparacion.php`**: Al modificar cantidad o precio, actualiza el `detalle_orden_venta` correspondiente y recalcula el `total` de la `orden_venta` con una subconsulta SUM.
+
+#### Actualizado: Eliminación de repuesto elimina venta vinculada
+- **`controllers/eliminar_repuesto_reparacion.php`**: Al eliminar un repuesto, también elimina el `detalle_orden_venta` asociado. Si la orden queda sin detalles, elimina la `orden_venta` completa. Si aún tiene detalles, recalcula el total.
+
+#### Actualizado: Tabla de ventas muestra badge de origen
+- **`views/ventas.php`**: Agregada columna "Origen" con badge: `<span class='badge bg-info'>Servicio</span>` para ventas de servicio técnico y `<span class='badge bg-secondary'>Manual</span>` para ventas creadas normalmente.

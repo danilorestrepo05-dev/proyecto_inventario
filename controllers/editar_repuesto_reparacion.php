@@ -26,7 +26,7 @@ if ($cantidad <= 0) {
 }
 
 // Obtener datos actuales para ajustar stock
-$sql_actual = "SELECT ID_producto, cantidad AS cantidad_actual FROM reparacion_repuesto WHERE ID_reparacion_repuesto = ?";
+$sql_actual = "SELECT ID_producto, cantidad AS cantidad_actual, precio_unitario AS precio_actual, ID_orden_venta FROM reparacion_repuesto WHERE ID_reparacion_repuesto = ?";
 $stmt = $conn->prepare($sql_actual);
 $stmt->bind_param("i", $id_reparacion_repuesto);
 $stmt->execute();
@@ -58,6 +58,7 @@ if ($diferencia > 0) {
 $conn->begin_transaction();
 
 try {
+    // 1. Actualizar repuesto
     $sql = "UPDATE reparacion_repuesto SET cantidad=?, precio_unitario=?, garantia_proveedor_dias=? WHERE ID_reparacion_repuesto=?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("iiii", $cantidad, $precio_unitario, $garantia_proveedor_dias, $id_reparacion_repuesto);
@@ -83,7 +84,28 @@ try {
         $stmt_adj->close();
     }
 
-    // Ajustar stock
+    // 2. Actualizar venta vinculada
+    if (!empty($actual['ID_orden_venta'])) {
+        $nuevo_subtotal = $cantidad * $precio_unitario;
+        $sql_det = "UPDATE detalle_orden_venta SET cantidad=?, precio_unitario=? WHERE ID_orden_venta=? AND ID_producto=?";
+        $stmt_det = $conn->prepare($sql_det);
+        $stmt_det->bind_param("iiii", $cantidad, $precio_unitario, $actual['ID_orden_venta'], $actual['ID_producto']);
+        if (!$stmt_det->execute()) {
+            throw new Exception("Error al actualizar detalle de venta: " . $conn->error);
+        }
+        $stmt_det->close();
+
+        // Recalcular total de la orden
+        $sql_total = "UPDATE orden_venta ov SET total = (SELECT IFNULL(SUM(dov.cantidad * dov.precio_unitario), 0) FROM detalle_orden_venta dov WHERE dov.ID_orden_venta = ov.ID_orden_venta) WHERE ov.ID_orden_venta = ?";
+        $stmt_total = $conn->prepare($sql_total);
+        $stmt_total->bind_param("i", $actual['ID_orden_venta']);
+        if (!$stmt_total->execute()) {
+            throw new Exception("Error al actualizar total de venta: " . $conn->error);
+        }
+        $stmt_total->close();
+    }
+
+    // 3. Ajustar stock
     if ($diferencia != 0) {
         $sql_stock = "UPDATE producto SET stock = stock - ? WHERE ID_producto = ?";
         $stmt_stock = $conn->prepare($sql_stock);

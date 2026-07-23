@@ -37,7 +37,8 @@ SELECT
     dov.precio_unitario,
     (dov.cantidad * dov.precio_unitario) AS subtotal,
     ov.fecha,
-    ov.estado
+    ov.estado,
+    ov.origen
 FROM orden_venta ov
 JOIN detalle_orden_venta dov ON ov.ID_orden_venta = dov.ID_orden_venta
 JOIN producto p ON dov.ID_producto = p.ID_producto
@@ -115,6 +116,7 @@ setTimeout(function() {
           <th>Precio Unit.</th>
           <th>Subtotal</th>
           <th>Fecha</th>
+          <th>Origen</th>
           <?php if ($rol === 'Admin'): ?><th class="th-opciones">Opciones</th><?php endif; ?>
         </tr>
       </thead>
@@ -137,6 +139,13 @@ setTimeout(function() {
             echo "<td>$" . number_format($fila['precio_unitario'], 0, ',', '.') . "</td>";
             echo "<td>$" . number_format($fila['subtotal'], 0, ',', '.') . "</td>";
             echo "<td>{$fila['fecha']}</td>";
+            echo "<td>";
+            if ($fila['origen'] === 'servicio') {
+                echo "<span class='badge bg-info'><i class='bi bi-tools'></i> Servicio</span>";
+            } else {
+                echo "<span class='badge bg-secondary'>Manual</span>";
+            }
+            echo "</td>";
             if ($rol === 'Admin') {
             echo "<td class='td-opciones'>";
               echo "<a href='editar_venta.php?id={$fila['ID_orden_venta']}' class='btn btn-sm btn-warning'><i class='bi bi-pencil'></i></a> 
@@ -146,7 +155,7 @@ setTimeout(function() {
             echo "</tr>";
           }
         } else {
-          echo "<tr><td colspan='" . ($rol === 'Admin' ? 8 : 7) . "' class='text-center'>Sin datos aún</td></tr>";
+          echo "<tr><td colspan='" . ($rol === 'Admin' ? 9 : 8) . "' class='text-center'>Sin datos aún</td></tr>";
         }
         ?>
       </tbody>
