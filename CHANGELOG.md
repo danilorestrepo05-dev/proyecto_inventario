@@ -995,3 +995,8 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: Cláusulas dinámicas de garantía solo se muestran si checkbox está marcado
 - **`reports/pdf_operacion_garantia.php`**: Las cláusulas 6+ (mano de obra individual, repuestos con/sin garantía, programas con/sin garantía) ahora están dentro de un bloque `if ($incluir_garantia)`. Al desmarcar el checkbox, solo se muestran las 5 cláusulas base. La función `draw_terminos_condiciones()` ahora recibe `$incluir_garantia` como tercer parámetro.
+
+### 22/07/2026 — Texto predeterminado en columna Garantía hasta
+
+#### Actualizado: Columna "Garantía hasta" muestra "Sin garantía" en vez de guion
+- **`reports/pdf_operacion_garantia.php`**: Cuando un repuesto o programa no tiene garantía, la columna "Garantía hasta" ahora muestra "Sin garantía" en lugar de `-` para mayor claridad visual.
