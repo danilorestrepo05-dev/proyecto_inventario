@@ -170,6 +170,32 @@ setTimeout(function() {
             </a>
         </div>
         <?php endif; ?>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/reparaciones.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-reparaciones">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-cyan">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Soporte T&eacute;cnico</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="views/bitacora_comandos.php" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm border-0 card-bitacora">
+                    <div class="card-body text-center">
+                        <div class="card-icon card-icon-indigo">
+                            <i class="bi bi-command"></i>
+                        </div>
+                        <h6 class="card-title mt-3">Comandos</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 

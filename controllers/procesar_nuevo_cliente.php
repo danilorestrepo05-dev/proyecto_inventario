@@ -18,10 +18,17 @@ $nombre = $_POST['nombre'];
 $apellido = $_POST['apellido'];
 $correo = $_POST['correo'];
 $telefono = $_POST['telefono'];
+$tipo_identificacion = $_POST['tipo_identificacion'] ?? 'ninguno';
+$identificacion = trim($_POST['identificacion'] ?? '');
 
-$sql = "INSERT INTO cliente (nombre, apellido, correo, telefono) VALUES (?, ?, ?, ?)";
+$tipos_permitidos = ['cc', 'nit', 'otro', 'ninguno'];
+if (!in_array($tipo_identificacion, $tipos_permitidos)) {
+    $tipo_identificacion = 'ninguno';
+}
+
+$sql = "INSERT INTO cliente (nombre, apellido, correo, telefono, tipo_identificacion, identificacion) VALUES (?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssss", $nombre, $apellido, $correo, $telefono);
+$stmt->bind_param("ssssss", $nombre, $apellido, $correo, $telefono, $tipo_identificacion, $identificacion);
 
 if ($stmt->execute()) {
     $id_cliente = $conn->insert_id;

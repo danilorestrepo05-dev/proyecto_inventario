@@ -96,11 +96,12 @@ setTimeout(function() {
     <table class="table table-hover align-middle">
       <thead class="table-primary">
         <tr>
-          <th>Código</th>
+          <th>C&oacute;digo</th>
           <th>Nombre</th>
           <th>Apellido</th>
-          <th>Correo electrónico</th>
-          <th>Teléfono</th>
+          <th>Identificaci&oacute;n</th>
+          <th>Correo</th>
+          <th>Tel&eacute;fono</th>
           <?php if ($rol === 'Admin'): ?><th class="th-opciones">Opciones</th><?php endif; ?>
         </tr>
       </thead>
@@ -112,9 +113,18 @@ setTimeout(function() {
             $clase_fila = $es_inactivo ? 'table-secondary' : '';
             $texto_estado = $es_inactivo ? '<span class="badge bg-secondary">Inactivo</span> ' : '';
             echo "<tr class='$clase_fila'>";
+            $id_text = '';
+            $tipo_id = $fila['tipo_identificacion'] ?? 'ninguno';
+            $num_id = $fila['identificacion'] ?? '';
+            if ($tipo_id === 'nit' && !empty($num_id)) $id_text = 'NIT ' . $num_id;
+            elseif ($tipo_id === 'cc' && !empty($num_id)) $id_text = 'CC ' . $num_id;
+            elseif ($tipo_id === 'otro' && !empty($num_id)) $id_text = 'ID: ' . $num_id;
+            else $id_text = '-';
+
             echo "<td>{$fila['ID_cliente']}</td>";
             echo "<td>" . $texto_estado . "{$fila['nombre']}</td>";
             echo "<td>{$fila['apellido']}</td>";
+            echo "<td>" . htmlspecialchars($id_text) . "</td>";
             echo "<td>{$fila['correo']}</td>";
             echo "<td>{$fila['telefono']}</td>";
             if ($rol === 'Admin') {
@@ -129,7 +139,7 @@ setTimeout(function() {
             echo "</tr>";
           }
         } else {
-          echo "<tr><td colspan='" . ($rol === 'Admin' ? 6 : 5) . "' class='text-center'>Sin datos aún</td></tr>";
+          echo "<tr><td colspan='" . ($rol === 'Admin' ? 7 : 6) . "' class='text-center'>Sin datos a&uacute;n</td></tr>";
         }
         ?>
       </tbody>

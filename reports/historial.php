@@ -7,10 +7,6 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';
-if ($rol !== 'Admin') {
-    header("Location: ../menu.php");
-    exit();
-}
 
 $filtro_modulo = isset($_GET['modulo']) ? $_GET['modulo'] : '';
 $filtro_accion = isset($_GET['accion']) ? $_GET['accion'] : '';

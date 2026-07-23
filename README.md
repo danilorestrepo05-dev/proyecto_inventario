@@ -8,9 +8,12 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
 - **Módulo de Clientes y Proveedores** — Gestión con paginación server-side
 - **Módulo de Ventas** — Órdenes de venta con líneas dinámicas, cliente general opcional
 - **Módulo de Órdenes de Compra** — Órdenes con selección de proveedor y actualización automática de stock
+- **Módulo de Reparaciones** — Gestión de soporte técnico con dispositivos, clientes, técnicos, estados, repuestos, programas instalados y garantías
+- **Módulo de Bitácora de Conocimiento** — Base de datos global de comandos útiles por categoría y sistema operativo (Admin)
 - **Módulo de Historial** — Registro de actividad con filtros por módulo, acción, usuario y fechas (Admin)
 - **Informes** — Filtros por fecha, estado, nombre y stock con paginación
 - **Exportación** — PDF (FPDF) y Excel (HTML .xls) para informes de ventas, compras y productos
+- **Reportes de Reparación** — Ficha de ingreso, certificado de trabajo con garantía y cuenta de cobro (FPDF)
 - **Dashboard** — Panel principal con cards de acceso rápido por módulo
 - **Control de roles** — Admin (CRUD completo + historial + gestión usuarios) y Operario (lectura + agregar clientes/proveedores/productos)
 - **Registro de usuarios** — Formulario de creación de usuarios con selección de rol (Admin)
@@ -59,6 +62,12 @@ Sistema web para el monitoreo de existencias, compras, ventas y reportes con con
    - `detalle_orden_compra`
    - `historial_cambios`
    - `login_attempts`
+   - `reparacion`
+   - `reparacion_repuesto`
+   - `bitacora_reparacion`
+   - `programa_instalado`
+   - `garantia`
+   - `bitacora_conocimiento`
 
 5. Acceder al sistema:
    ```

@@ -70,12 +70,12 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
             <i class="bi bi-person-plus me-1"></i> Registro
           </a>
         </li>
+        <?php endif; ?>
         <li class="nav-item">
-          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'historial.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/reports/historial.php">
-            <i class="bi bi-clock-history me-1"></i> Historial
+          <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) === 'reparaciones.php') ? 'active' : ''; ?>" href="<?php echo $nav_base; ?>/views/reparaciones.php">
+            <i class="bi bi-tools me-1"></i> Soporte T&eacute;cnico
           </a>
         </li>
-        <?php endif; ?>
       </ul>
 
       <ul class="navbar-nav ms-auto">
@@ -88,9 +88,20 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
             <li><span class="dropdown-item-text small" style="color: rgba(255,255,255,0.7);"><i class="bi bi-person-badge me-1"></i><?php echo htmlspecialchars($rol_nav); ?></span></li>
             <li><hr class="dropdown-divider"></li>
             <li>
+              <a class="dropdown-item" href="<?php echo $nav_base; ?>/reports/historial.php">
+                <i class="bi bi-clock-history me-1"></i> Historial
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="<?php echo $nav_base; ?>/views/bitacora_comandos.php">
+                <i class="bi bi-command me-1"></i> Comandos
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
               <form action="<?php echo $nav_base; ?>/controllers/cerrar_sesion.php" method="POST" class="px-3 py-1">
                 <button type="submit" class="dropdown-item text-danger">
-                  <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+                  <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesi&oacute;n
                 </button>
               </form>
             </li>

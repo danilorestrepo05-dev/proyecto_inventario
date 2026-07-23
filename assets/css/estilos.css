@@ -552,6 +552,29 @@ body.custom-body {
 }
 
 /* =========================================
+   MÓDULO DE REPARACIONES
+   ========================================= */
+.nav-tabs .nav-link {
+    font-size: 0.9rem;
+    color: #495057;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #1a2035;
+    color: #fff;
+    border-color: #1a2035;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    background-color: rgba(26, 32, 53, 0.08);
+    border-color: #dee2e6 #dee2e6 transparent;
+}
+
+/* =========================================
    RESPONSIVE
    ========================================= */
 @media (max-width: 991.98px) {

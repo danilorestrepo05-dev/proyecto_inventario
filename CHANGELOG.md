@@ -687,3 +687,292 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 - **`README.md`**: Agregado rate limiting a la sección "Seguridad" (protección contra fuerza bruta: 5 intentos / 15 min)
 - **`README.md`**: Agregadas features "Registro de usuarios" y "Recuperación de contraseña" (formularios Admin no documentados)
 - **`README.md`**: Corregido URL de clone de `TU_USUARIO` al usuario real `danilorestrepo05-dev`
+
+---
+
+### 21/07/2026 — Reportes PDF del módulo de Reparaciones
+
+#### Nuevo: Ficha de Ingreso PDF
+- **`reports/pdf_recibido.php`**: Genera PDF con logo centrado, título "FICHA DE INGRESO", datos del cliente (nombre, apellido, identificación), información del dispositivo (dispositivo, marca, modelo, número de serie), problema reportado y referencia #REP-{ID}. Footer con disclaimer de no comprobante de pago y número de página.
+
+#### Nuevo: Certificado de Trabajo + Garantía PDF
+- **`reports/pdf_operacion_garantia.php`**: Genera PDF con logo centrado, título "CERTIFICADO DE TRABAJO", datos del cliente y dispositivo, diagnóstico final, tabla de repuestos utilizados (producto, cantidad, precio unitario, subtotal), tabla de programas instalados (nombre, versión, licencia) y cláusula de garantía con días y fecha de entrega. Footer con número de página.
+
+#### Nuevo: Cuenta de Cobro PDF
+- **`reports/pdf_cuenta_cobro.php`**: Genera PDF con logo centrado, título "Cuenta de cobro", ciudad y fecha, datos del cliente con identificación flexible (NIT/CC/ID), empresa CompuMasterLD con NIT 1041149861-6, suma en letras con función `numero_a_letras()` (0 a 999,999,999), lista de conceptos (reparación, diagnóstico, repuestos, programas). Opción de mostrar precios por ítem con resumen (mano de obra, repuestos, descuento, TOTAL COP) o solo concepto sin precios. Datos bancarios, teléfonos y dirección en footer.
+
+---
+
+### 21/07/2026 — Módulo de Reparaciones y Soporte Técnico
+
+#### Nuevo: Base de datos — Tablas del módulo de reparaciones
+- **`sql_modulo_reparaciones.sql`**: Script SQL completo con 6 tablas nuevas: `reparacion` (dispositivo, cliente, técnico, estado, mano de obra, descuento), `reparacion_repuesto` (repuestos con garantía de proveedor y factura adjunta), `bitacora_reparacion` (historial de cambios de estado), `programa_instalado` (software instalado por reparación), `garantía` (garantía de mano de obra configurable 1-12 meses), `bitacora_conocimiento` (base de datos global de comandos útiles). Incluye 10 comandos de ejemplo.
+
+#### Nuevo: Base de datos — Campo NIT flexible en cliente
+- **`sql_modulo_reparaciones.sql`**: Alter table `cliente` con campos `identificacion` (VARCHAR 20) y `tipo_identificacion` (ENUM: cc, nit, otro, ninguno) para soportar NIT, cédula u otro documento.
+
+#### Nuevo: Controllers del módulo de reparaciones
+- **`controllers/procesar_nueva_reparacion.php`**: Crear reparación con validación de cliente, técnico (default: usuario logueado), dispositivo y problema reportado. Registro en historial.
+- **`controllers/procesar_edicion_reparacion.php`**: Editar reparación con cambio de estado automático en bitácora. Al marcar como "entregado": inserta garantía configurable. Preparado con transacciones.
+- **`controllers/procesar_repuesto_reparacion.php`**: Agregar repuesto a reparación con verificación de stock, upload de factura adjunta, reducción automática de inventario. Transacción.
+- **`controllers/procesar_programa_reparacion.php`**: Agregar programa instalado a reparación con nombre, versión y licencia.
+- **`controllers/procesar_bitacora_conocimiento.php`**: CRUD de comandos de la bitácora de conocimiento (crear/editar) con validación de categoría.
+- **`controllers/eliminar_reparacion.php`**: Eliminar reparación con validación de repuestos/garantía asociados. Transacción con eliminación en cascada de bitácora y programas.
+
+#### Nuevo: Vistas del módulo de reparaciones
+- **`views/reparaciones.php`**: Lista principal de reparaciones con tabla, filtros (estado, búsqueda, rango de fechas), paginación, badges de estado por colores (ingresado→info, diagnosticado→warning, en_progreso→primary, reparado→success, entregado→secondary, cancelado→danger).
+- **`views/agregar_reparacion.php`**: Formulario de nueva reparación con select de cliente, técnico (default: logueado), campos de dispositivo/marca/modelo/serie, textarea de problema y notas.
+- **`views/editar_reparacion.php`**: Formulario con 4 tabs Bootstrap: Información (edición con estado, diagnóstico, mano de obra, garantía), Repuestos (tabla + modal agregar con upload), Programas (tabla + modal agregar), Bitácora (historial de cambios de estado). Botones de impresión: Ficha de Ingreso, Certificado de Trabajo, Cuenta de Cobro (con modal de opciones de precios y descuento).
+- **`views/detalle_reparacion.php`**: Vista de solo lectura con todos los datos, repuestos, programas, garantía y botones de impresión PDF.
+- **`views/bitacora_comandos.php`**: Base de conocimiento de comandos útiles con tabla, filtros por categoría, paginación, botón copiar al portapapeles, CRUD completo (Admin) con modal inline para agregar/editar.
+
+#### Nuevo: Reportes PDF del módulo
+- **`reports/pdf_recibido.php`**: Ficha de ingreso con logo, datos del cliente (identificación flexible), dispositivo, problema, referencia #REP-{ID}.
+- **`reports/pdf_operacion_garantia.php`**: Certificado de trabajo con diagnóstico, repuestos, programas instalados y cláusula de garantía.
+- **`reports/pdf_cuenta_cobro.php`**: Cuenta de cobro con layout de plantilla Word: logo centrado, LA SUMA DE en letras + COP, conceptos por reparación, opción de precios individuales con resumen y descuento, TOTAL COP solo si se muestran precios. Datos estáticos de CompuMasterLD.
+- **`reports/detalle_reparacion.php`**: Fragmento HTML para carga dinámica en modales.
+
+#### Actualizado: navbar.php — Menús de Reparaciones y Bitácora
+- **`views/includes/navbar.php`**: Agregado item "Reparaciones" (bi-tools) para todos los usuarios entre Ventas e Informes. Agregado item "Bitácora" (bi-journal-bookmark) solo para Admin junto a Historial.
+
+#### Actualizado: menu.php — Dashboard con cards nuevas
+- **`menu.php`**: Agregada card "Reparaciones" (bi-tools, card-icon-cyan) para todos los usuarios. Agregada card "Bitácora" (bi-journal-bookmark, card-icon-indigo) solo para Admin.
+
+#### Actualizado: estilos.css — Estilos del módulo
+- **`assets/css/estilos.css`**: Nuevas reglas para `.nav-tabs .nav-link` con estilo personalizado (active: #1a2035, hover: transparencia).
+
+#### Actualizado: Clientes con campo NIT flexible
+- **`views/agregar_cliente.php`**: Nuevo select de tipo_identificación (Ninguno/CC/NIT/Otro) + input de identificación numérica.
+- **`views/editar_cliente.php`**: Mismos campos con valores precargados desde BD.
+- **`views/clientes.php`**: Nueva columna "Identificación" en tabla que muestra NIT/CC/ID según tipo. colspan ajustado.
+- **`controllers/procesar_nuevo_cliente.php`**: Captura y valida tipo_identificación e identificación en INSERT.
+- **`controllers/procesar_edicion_cliente.php`**: Captura y valida en UPDATE con 7 parámetros bind_param.
+
+#### Nuevo: Seguridad de uploads
+- **`assets/uploads/garantias/.htaccess`**: `php_flag engine off` para denegar ejecución PHP en carpeta de facturas adjuntas.
+
+### 21/07/2026 — Renombrado de módulos y acceso Operario
+
+#### Renombrado: Reparaciones → Soporte Técnico
+- **`views/includes/navbar.php`**: Cambiado texto del menú de "Reparaciones" a "Soporte Técnico" en la navbar principal.
+- **`menu.php`**: Cambiado título de la card de "Reparaciones" a "Soporte Técnico".
+- **`views/reparaciones.php`**: Cambiado título de página y encabezado h2 a "Soporte Técnico".
+
+#### Renombrado: Bitácora → Comandos
+- **`views/includes/navbar.php`**: Cambiado texto del dropdown de "Bitácora" a "Comandos" con icono bi-command. Movido del navbar principal al dropdown del usuario.
+- **`menu.php`**: Cambiado título de la card de "Bitácora" a "Comandos" con icono bi-command. Ahora visible para todos los roles (sin restricción Admin).
+- **`views/bitacora_comandos.php`**: Cambiado título de página, encabezado h2, título del modal y reset del modal de "Bitácora de Conocimiento" a "Comandos" con icono bi-command.
+
+#### Acceso Operario a Comandos (copiar, crear, editar; solo Admin elimina)
+- **`views/bitacora_comandos.php`**: Botón "Agregar Comando" visible para todos los roles. Columna Opciones visible para todos: Copiar y Editar disponibles para Admin y Operario, Eliminar solo Admin.
+- **`controllers/eliminar_bitacora.php`**: Nuevo controller con verificación de rol Admin y validación CSRF para eliminar comandos.
+- **`controllers/procesar_bitacora_conocimiento.php`**: Removida restricción Admin para que Operario también pueda crear y editar comandos.
+
+#### Acceso Operario a Historial
+- **`reports/historial.php`**: Removida verificación `if ($rol !== 'Admin')` que redirigía al Operario. Ahora ambos roles pueden consultar el historial de cambios.
+
+### 21/07/2026 — Fix pérdida de datos y CRUD de repuestos/programas
+
+#### Seguridad: AJAX en formularios de Repuestos y Programas
+- **`controllers/procesar_repuesto_reparacion.php`**: Ahora retorna JSON cuando la petición es AJAX (`X-Requested-With: XMLHttpRequest`), evitando recarga de página y pérdida de datos del formulario de Información.
+- **`controllers/procesar_programa_reparacion.php`**: Mismo cambio AJAX para evitar recarga de página al agregar programas.
+- **`views/editar_reparacion.php`**: Formularios de agregar repuesto y programa ahora usan `fetch()` API con AJAX. Los datos del formulario de Información (estado, diagnóstico, mano de obra, notas internas, garantía) ya no se pierden al agregar un repuesto o programa.
+
+#### CRUD: Editar y Eliminar Repuestos
+- **`views/editar_reparacion.php`**: Tabla de repuestos ahora incluye columna "Opciones" con botones Editar (pencil) y Eliminar (trash). Modal de edición con campos cantidad, precio unitario y garantía proveedor.
+- **`controllers/editar_repuesto_reparacion.php`**: Nuevo controller que actualiza cantidad, precio y garantía del repuesto. Ajusta stock automáticamente si cambia la cantidad.
+- **`controllers/eliminar_repuesto_reparacion.php`**: Nuevo controller que elimina repuesto y devuelve stock al inventario. Validación CSRF incluida.
+
+#### CRUD: Editar y Eliminar Programas
+- **`views/editar_reparacion.php`**: Tabla de programas ahora incluye columna "Opciones" con botones Editar y Eliminar. Modal de edición con campos nombre, versión y licencia.
+- **`controllers/editar_programa_reparacion.php`**: Nuevo controller para actualizar nombre, versión y licencia de un programa instalado.
+- **`controllers/eliminar_programa_reparacion.php`**: Nuevo controller para eliminar un programa instalado. Validación CSRF incluida.
+
+### 21/07/2026 — Fix error de memoria en PDFs
+
+#### Seguridad: Logo optimizado para PDFs
+- **`C:\xampp\php\php.ini`**: Habilitada extensión `gd` (línea 931, de `;extension=gd` a `extension=gd`) para procesamiento de imágenes.
+- **`assets/img/logo_pdf.png`**: Nueva imagen del logo redimensionada a 300x100 px (8 KB), generada desde `compumasterld.png` (18000x6000, 3.1 MB). Soluciona error `Allowed memory size exhausted` al imprimir PDFs.
+- **`reports/pdf_recibido.php`**: Logo cambiado de `compumasterld.png` a `logo_pdf.png`. Coordenada X centrada (60mm). Pie de página unificado con nombre, teléfonos, ubicación y email. Fecha incluye hora.
+- **`reports/pdf_operacion_garantia.php`**: Logo cambiado de `compumasterld.png` a `logo_pdf.png`. Coordenada X centrada (60mm). Pie de página unificado con nombre, teléfonos, ubicación y email. Fecha incluye hora.
+- **`reports/pdf_cuenta_cobro.php`**: Logo cambiado de `compumasterld.png` a `logo_pdf.png`. Coordenada X centrada (60mm). Pie de página unificado con nombre, teléfonos, ubicación y email. Fecha incluye hora.
+
+### 21/07/2026 — Fix encoding footer y contacto cliente en Soporte Técnico
+
+#### Corregido: Encoding en footer de PDFs
+- **`reports/pdf_recibido.php`**: Reemplazado carácter `–` (en-dash Unicode) por `-` (guión ASCII) en "Fredonia - Antioquia" del pie de página. El carácter original no existía en la fuente Arial de FPDF y se mostraba como `?`.
+- **`reports/pdf_operacion_garantia.php`**: Mismo fix de encoding.
+- **`reports/pdf_cuenta_cobro.php`**: Mismo fix de encoding.
+
+#### Contacto del cliente en Soporte Técnico
+- **`views/editar_reparacion.php`**: Nuevo bloque informativo en la pestaña Información que muestra teléfono y correo del cliente (solo lectura). Si no están registrados muestra "No registrado". Query SQL actualizado para traer `c.telefono` y `c.correo`.
+- **`reports/pdf_recibido.php`**: Ficha de Ingreso ahora muestra teléfono y correo del cliente (si existen) después de la identificación. Query SQL actualizado.
+- **`reports/pdf_operacion_garantia.php`**: Certificado de Trabajo ahora muestra teléfono y correo del cliente (si existen) después de la identificación. Query SQL actualizado.
+
+### 21/07/2026 — Fix bitácora, garantía y rediseño cuenta de cobro
+
+#### Corregido: Estado anterior en bitácora mostraba 0
+- **`controllers/procesar_edicion_reparacion.php`**: Corregido tipo de bind_param de `"iiiss"` a `"iisss"` en inserción de bitácora. `estado_anterior` (string como 'ingresado') se bindeaba como integer, MySQL lo convertía a 0.
+
+#### Corregido: Fecha incorrecta en certificado de trabajo
+- **`reports/pdf_operacion_garantia.php`**: Sección de garantía ahora muestra `fecha_inicio` en vez de `fecha_fin`. El texto decía "a partir de la fecha de entrega" pero mostraba la fecha de expiración en lugar de la fecha de inicio.
+
+#### Actualizado: Rediseño profesional de cuenta de cobro
+- **`reports/pdf_cuenta_cobro.php`**: Reescritura completa del PDF. Título "CUENTA DE COBRO" centrado (18pt), número consecutivo No. CxC-YYYY-XXXX y fecha centrados debajo. Secciones de Datos del Cliente, Debe A y La Suma De con fuentes más grandes (11pt). Tabla profesional "Por Concepto de" con filas alternadas, descripción detallada y precios alineados a la derecha. Sección "Cordialmente" con nombre, NIT y cuenta de ahorros Bancolombia posicionada al fondo de la página. Corregido encoding de tildes con función `txt()` usando `mb_convert_encoding` y `chr()` para caracteres acentuados.
+
+### 21/07/2026 — Costo de programas y mano de obra independiente en Cuenta de Cobro
+
+#### Nuevo: Campo costo en programas instalados
+- **`sql_modulo_reparaciones.sql`**: Agregada columna `costo DECIMAL(10,2) DEFAULT 0` a tabla `programa_instalado` (sentencia CREATE y ALTER TABLE para actualizaciones de BD existentes).
+
+#### Actualizado: Formularios de agregar/editar programa
+- **`views/editar_reparacion.php`**: Agregado campo numérico "Costo ($)" en ambos modales de programa (agregar y editar). JS `editarPrograma()` ahora carga el costo existente en el modal de edición.
+
+#### Actualizado: Controllers de programas con campo costo
+- **`controllers/procesar_programa_reparacion.php`**: INSERT ahora incluye campo `costo` con bind_param `"isssd"`. Lee `$_POST['costo']` con `floatval()` y valor por defecto 0.
+- **`controllers/editar_programa_reparacion.php`**: UPDATE ahora incluye campo `costo` con bind_param `"sssdi"`. Lee `$_POST['costo']` con `floatval()` y valor por defecto 0.
+
+#### Actualizado: Cuenta de cobro con desglose completo
+- **`reports/pdf_cuenta_cobro.php`**: Mano de obra ahora aparece como línea independiente numerada en "POR CONCEPTO DE" (solo cuando precios están activados). Programas ahora muestran valor unitario junto a la licencia cuando precios están activados. Tabla resumen de totales ahora desglosa: Mano de obra, Repuestos, Programas y Subtotal por separado. Total bruto ahora incluye la suma de los tres componentes (mano de obra + repuestos + programas).
+
+### 21/07/2026 — Cantidad en programas, fix F5 y edición de adjunto repuestos
+
+#### Corregido: F5/redirección a módulo soporte técnico
+- **`views/editar_reparacion.php`**: Eliminado `window.history.replaceState` que borraba todos los parámetros de la URL después de 5 segundos (incluyendo `?id=X`). Ahora solo se limpia el parámetro `mensaje=` preservando el ID y el hash del tab.
+
+#### Actualizado: Programas con cantidad y sin decimales
+- **`views/editar_reparacion.php`**: Modal de agregar y editar programa ahora incluyen campo "Cantidad" y el costo usa `step="1"` (sin decimales). Tabla de programas ahora muestra columnas Cant., Precio U. y Subtotal. JS de subtotal calcula automáticamente cantidad x costo. Funciones `calcSubtotalAdd()` y `calcSubtotalEdit()` actualizan el campo subtotal en tiempo real.
+- **`controllers/procesar_programa_reparacion.php`**: INSERT ahora incluye campo `cantidad` con bind_param `"isssid"`.
+- **`controllers/editar_programa_reparacion.php`**: UPDATE ahora incluye campo `cantidad` con bind_param `"sssidi"`.
+- **`reports/pdf_cuenta_cobro.php`**: Cálculo de total de programas ahora multiplica `cantidad * costo`. Sección "POR CONCEPTO DE" muestra formato `N x $precio = $subtotal` para programas con precios activados.
+
+#### Nuevo: Campo cantidad en tabla programa_instalado
+- **`sql_modulo_reparaciones.sql`**: Agregado `cantidad INT DEFAULT 1` en CREATE TABLE y sentencia ALTER TABLE para actualizaciones. Ejecutar: `ALTER TABLE programa_instalado ADD COLUMN cantidad INT DEFAULT 1 AFTER licencia;`
+
+#### Nuevo: Edición de archivo adjunto en repuestos
+- **`views/editar_reparacion.php`**: Modal de editar repuesto ahora incluye campo de archivo (PDF/imagen) con `enctype="multipart/form-data"`. Muestra el adjunto actual si existe. JS `editarRepuesto()` carga la info del adjunto y resetea el input file.
+- **`controllers/editar_repuesto_reparacion.php`**: Ahora maneja subida de archivo adjunto al editar. Si se selecciona un archivo nuevo, lo sube a `assets/uploads/garantias/` y actualiza la ruta en la BD.
+
+### 21/07/2026 — Fix recarga AJAX y estabilidad de controllers
+
+#### Corregido: Editar repuesto/programa no actualiza datos sin F5
+- **`views/editar_reparacion.php`**: `recargarEnMismoTab()` ahora usa `location.reload(true)` con `window.location.hash` previo para forzar recarga desde servidor sin perder el tab activo. Antes usaba `window.location.href` que el navegador cacheaba.
+
+#### Seguridad: Historial de cambios con supresión de errores
+- **`config/historial.php`**: `registrar_cambio()` ahora usa `@` en `prepare()` y `execute()` para evitar que un warning de MySQL rompa la respuesta JSON de controllers AJAX. Retorna silenciosamente si el stmt falla.
+
+#### Corregido: Tags de cierre `?>` en controllers AJAX
+- **`controllers/procesar_repuesto_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/procesar_edicion_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/procesar_programa_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/procesar_nueva_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/eliminar_repuesto_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/editar_repuesto_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/eliminar_reparacion.php`**: Eliminado `?>` final.
+- **`controllers/eliminar_programa_reparacion.php`**: Eliminado `?>` final.
+
+### 21/07/2026 — Cuenta de cobro: cantidad en concepto y footer mejorado
+
+#### Actualizado: Programas siempre muestran cantidad en "solo concepto"
+- **`reports/pdf_cuenta_cobro.php`**: En modo "solo concepto" (sin precios), los programas ahora muestran el campo "Cantidad" en la sección "POR CONCEPTO DE". El detalle de cantidad siempre aparece independientemente de si los precios están activados.
+
+#### Corregido: Footer de cuenta de cobro con tamaño consistente
+- **`reports/pdf_cuenta_cobro.php`**: Footer ahora usa Arial B 9 para nombre de empresa, Arial 8 para datos de contacto y ubicación, y Arial I 8 para paginación — mismo estilo que la ficha de ingreso. Antes usaba tamaño 7 que era muy pequeño.
+- **`reports/pdf_cuenta_cobro.php`**: Eliminado `?>` final.
+
+### 22/07/2026 — Eliminación de archivos obsoletos del modelo antiguo
+
+#### Removido: Vistas y controllers del modelo de reparación plana
+- **`views/agregar_reparacion.php`**: Eliminado. Reemplazado por `views/agregar_servicio.php`.
+- **`views/editar_reparacion.php`**: Eliminado. Reemplazado por `views/editar_trabajo.php`.
+- **`views/detalle_reparacion.php`**: Eliminado. Reemplazado por `views/detalle_servicio.php`.
+- **`controllers/procesar_nueva_reparacion.php`**: Eliminado. Reemplazado por `controllers/procesar_nuevo_servicio.php`.
+- **`controllers/procesar_edicion_reparacion.php`**: Eliminado. Reemplazado por `controllers/procesar_edicion_trabajo.php`.
+- **`controllers/eliminar_reparacion.php`**: Eliminado. Reemplazado por `controllers/eliminar_servicio.php`.
+- **`reports/detalle_reparacion.php`**: Eliminado. Ya no es referenciado por ninguna vista.
+
+### 22/07/2026 — Migración a modelo jerárquico 3 niveles (Servicio → Dispositivo → Trabajo)
+
+#### Nuevo: Base de datos — Tablas de jerarquía 3 niveles
+- **`sql_modulo_reparaciones.sql`**: Script SQL reescrito con 3 tablas nuevas: `servicio` (ID_servicio PK, ID_cliente FK, ID_usuario_tecnico FK, nombre, descuento_valor, descuento_tipo, notas_internas, activo, fecha_creacion), `dispositivo_servicio` (ID_dispositivo PK, ID_servicio FK con CASCADE, dispositivo, marca, modelo, numero_serie), `trabajo` (ID_trabajo PK, ID_dispositivo FK con CASCADE, tipo_trabajo ENUM con 10 opciones, problema_reportado, diagnostico, notas_internas, estado ENUM, mano_obra_costo, fecha_ingreso, fecha_entrega). Tabla `reparacion` renombrada a `reparacion_backup` durante la migración.
+
+#### Actualizado: Foreign keys migradas a ID_trabajo
+- **`sql_modulo_reparaciones.sql`**: Tablas hijas `reparacion_repuesto`, `programa_instalado`, `bitacora_reparacion` y `garantia` ahora usan FK `ID_trabajo` en lugar de `ID_reparacion`, todas con `ON DELETE CASCADE`.
+
+#### Nuevo: Controllers de servicio
+- **`controllers/procesar_nueva_reparacion.php`**: Reemplazado por **`controllers/procesar_nuevo_servicio.php`**. Crea servicio + primer dispositivo + primer trabajo en una transacción. Valida cliente, técnico y datos del dispositivo/trabajo.
+- **`controllers/procesar_agregar_dispositivo.php`**: AJAX. Agrega un nuevo dispositivo a un servicio existente. Retorna JSON con el ID del dispositivo creado.
+- **`controllers/procesar_edicion_dispositivo.php`**: AJAX. Editar los campos de un dispositivo (dispositivo, marca, modelo, serie).
+- **`controllers/eliminar_dispositivo.php`**: AJAX. Elimina un dispositivo y todos sus trabajos en cascada.
+- **`controllers/procesar_nuevo_trabajo.php`**: AJAX. Agrega un nuevo trabajo a un dispositivo. Retorna JSON con el ID del trabajo creado.
+- **`controllers/procesar_edicion_trabajo.php`**: Edita un trabajo (estado, diagnóstico, notas, mano de obra) y redirige a la vista de edición con tabs. Registra bitácora de cambios y garantía al entregar.
+- **`controllers/eliminar_trabajo.php`**: AJAX. Elimina un trabajo y todos sus repuestos/programas/garantía/bitácora en cascada.
+- **`controllers/eliminar_servicio.php`**: Soft delete de servicio (activo = 0) con validación Admin y CSRF.
+
+#### Actualizado: Controllers de repuestos y programas con FK ID_trabajo
+- **`controllers/procesar_repuesto_reparacion.php`**: INSERT ahora usa `ID_trabajo` en lugar de `ID_reparacion`.
+- **`controllers/editar_repuesto_reparacion.php`**: UPDATE ahora usa `ID_trabajo`. Incluye edición de archivo adjunto.
+- **`controllers/eliminar_repuesto_reparacion.php`**: DELETE ahora usa `ID_trabajo`.
+- **`controllers/procesar_programa_reparacion.php`**: INSERT ahora usa `ID_trabajo`.
+- **`controllers/editar_programa_reparacion.php`**: UPDATE ahora usa `ID_trabajo`.
+- **`controllers/eliminar_programa_reparacion.php`**: DELETE ahora usa `ID_trabajo`.
+
+#### Nuevo: Vistas de Soporte Técnico 3 niveles
+- **`views/editar_trabajo.php`**: Reemplaza `editar_reparacion.php`. Vista de edición de un trabajo específico con tabs: Información (diagnóstico, estado, notas, mano de obra), Repuestos (tabla + modal agregar/editar), Programas (tabla + modal agregar/editar), Bitácora (historial de cambios). Header con tipo de trabajo y dispositivo. Botón "Volver al servicio".
+- **`views/reparaciones.php`**: Reescrito completamente. Lista servicios (no reparaciones) con columnas: #, Servicio, Cliente, Técnico, Dispositivos, Trabajos, Fecha, Opciones. Paginación, filtros, badges de estado, botón "Mostrar inactivos".
+
+### 22/07/2026 — Nuevo formulario de Servicio
+
+#### Nuevo: Formulario de creación de servicio con dispositivo y trabajo inicial
+- **`views/agregar_servicio.php`**: Nuevo archivo que reemplaza `agregar_reparacion.php`. Formulario unificado para registrar un servicio completo incluyendo cliente, técnico, nombre del servicio, primer dispositivo (con marca/modelo/serie) y primer trabajo (tipo, problema reportado, notas internas). Diseño con secciones diferenciadas e iconos Bootstrap.
+
+### 22/07/2026 — Vista de detalle de Servicio
+
+#### Nuevo: Vista principal de detalle de servicio con dispositivos y trabajos
+- **`views/detalle_servicio.php`**: Vista completa del servicio con header (título, técnico, fecha), card de información del cliente (identificación, teléfono, correo), barra de acciones (Ficha de Ingreso, Certificado de Trabajo, Cuenta de Cobro), lista acordeón de dispositivos con tablas de trabajos por dispositivo, badges de estado por colores y modales AJAX para agregar/editar dispositivos y agregar trabajos.
+
+### 22/07/2026 — Ficha de Ingreso adaptada a jerarquía 3 niveles
+
+#### Actualizado: PDF de Ficha de Ingreso con soporte dual (servicio y trabajo)
+- **`reports/pdf_recibido.php`**: Reescrito completamente para soportar la nueva jerarquía servicio → dispositivo → trabajo. Detecta modo por POST: `id_servicio` (muestra todos los dispositivos y trabajos del servicio) o `id_trabajo` (muestra un solo trabajo con su dispositivo). Funciones reutilizables `render_seccion_header()`, `render_cliente()`, `render_dispositivo()`, `render_trabajo()` y `verificar_cierre()` para evitar duplicación de código. Consultas SQL con prepared statements para las 3 tablas (`servicio`, `dispositivo_servicio`, `trabajo`). Footer y diseño visual idénticos al original.
+
+### 22/07/2026 — Certificado de Trabajo adaptado a jerarquía 3 niveles
+
+#### Actualizado: PDF de Certificado de Trabajo con soporte dual (servicio y trabajo)
+- **`reports/pdf_operacion_garantia.php`**: Reescrito completamente para soportar la nueva jerarquía servicio → dispositivo → trabajo. Detecta modo por POST: `id_servicio` (muestra todos los dispositivos, diagnósticos consolidados, repuestos y programas de todas las tareas del servicio, y garantía más reciente) o `id_trabajo` (muestra un solo trabajo con su dispositivo). Funciones reutilizables `draw_header_bar()`, `draw_client_info()`, `draw_device_section()`, `draw_diagnostico()`, `draw_repuestos_table()`, `draw_programas_table()`, `draw_garantia()` para evitar duplicación de código. Consultas SQL con prepared statements para las 5 tablas (`servicio`, `dispositivo_servicio`, `trabajo`, `reparacion_repuesto`, `programa_instalado`, `garantia`). Footer y diseño visual idénticos al original.
+
+### 22/07/2026 — Cuenta de Cobro adaptada a jerarquía 3 niveles
+
+#### Actualizado: PDF de Cuenta de Cobro con soporte dual (servicio y trabajo)
+- **`reports/pdf_cuenta_cobro.php`**: Reescrito completamente para soportar la nueva jerarquía servicio → dispositivo → trabajo. Detecta modo por POST: `id_servicio` (muestra todos los dispositivos y trabajos del servicio agrupados por dispositivo) o `id_trabajo` (muestra un solo trabajo con su dispositivo). En modo servicio, la sección "POR CONCEPTO DE" itera dispositivos y sus trabajos mostrando reportado, diagnóstico, notas, repuestos, programas y mano de obra por cada uno. Consultas SQL con prepared statements usando las tablas `servicio`, `dispositivo_servicio`, `trabajo`, `reparacion_repuesto` y `programa_instalado`. Totales, descuento, footer y diseño visual idénticos al original.
+
+### 22/07/2026 — UX: Persistencia de acordeón abierto en Soporte Técnico
+
+#### Corregido: Acordeón de dispositivos siempre se cerraba al recargar o tras cambios
+- **`views/detalle_servicio.php`**: Eliminado el `show` forzado del PHP (`$idx === 0 ? 'show' : ''`) que siempre abría el primer dispositivo. Ahora todos los acordeones inician cerrados y JavaScript en `localStorage` guarda el ID del dispositivo abierto (`servicio_acordeon_{ID_servicio}`) al expandirlo. Al cargar la página, se restaura el último acordeón abierto. Al cerrar todos, se limpia la clave para evitar acordeones fantasma.
+
+### 22/07/2026 — Corrección: Botón Editar Dispositivo no funcionaba
+
+#### Corregido: Botón Editar Dispositivo no hacía nada al hacer clic
+- **`views/detalle_servicio.php`**: Variable PHP `$servicio` no existía en el IIFE de persistencia del acordeón (la variable correcta es `$serv`). El `echo` de una variable inexistente generaba un PHP warning que producía JavaScript inválido (`var KEY = 'servicio_acordeon_' + ;`), rompiendo el bloque `<script>` completo y haciendo que todas las funciones JS (`editarDispositivo`, `eliminarDispositivo`, `eliminarTrabajo`, etc.) nunca se definieran. Corregido `$servicio` → `$serv` y corregido nombre de variable JS en restauración (`var目标` → `var target`).
+
+### 22/07/2026 — Garantías por ítem en Certificado de Trabajo
+
+#### Nuevo: Campos de garantía individuales en programas instalados
+- **`sql_modulo_reparaciones.sql`**: Agregadas columnas `gar_dias INT`, `gar_fecha_inicio DATE`, `gar_fecha_fin DATE` a tabla `programa_instalado` para garantía directa de cada programa instalado (independiente de la mano de obra).
+
+#### Actualizado: Controllers de programas guardan campos de garantía
+- **`controllers/procesar_programa_reparacion.php`**: INSERT ahora incluye `gar_dias`, `gar_fecha_inicio`, `gar_fecha_fin`. Si se selecciona "Sin garantía" (0), se guarda NULL en las fechas. Si se selecciona un número de días, calcula `gar_fecha_fin` sumando los días a `gar_fecha_inicio`.
+- **`controllers/editar_programa_reparacion.php`**: UPDATE ahora incluye `gar_dias`, `gar_fecha_inicio`, `gar_fecha_fin` con la misma lógica de cálculo.
+
+#### Actualizado: Controlador de edición de trabajo elimina garantía si es 0
+- **`controllers/procesar_edicion_trabajo.php`**: Si `garantia_dias = 0` se ejecuta DELETE de la tabla `garantia` para ese trabajo (borra registro existente). Si `garantia_dias > 0`, crea o actualiza registro con INSERT ... ON DUPLICATE KEY UPDATE.
+
+#### Actualizado: Vista de edición de trabajo con campos de garantía por programa
+- **`views/editar_trabajo.php`**: Columnas "Garantía" y "Vence" en tabla de programas instalados. Select con opción "Sin garantía" (value=0) en modal de mano de obra. Default `garantia_dias = 0`. Campos ocultos `gar_dias` y `gar_fecha_inicio` en modales de agregar/editar programa. JS `editarPrograma()` popula campos de garantía desde dataset. Checkbox global `incluir_garantia` (form-switch, checked por defecto, hidden input value=0) en form de certificado de trabajo.
+
+#### Actualizado: Vista de detalle con checkbox de garantía en certificado
+- **`views/detalle_servicio.php`**: Checkbox global `incluir_garantia` (form-switch + hidden input) en form de certificado de trabajo, con descripción "Incluir garantía y condiciones".
+
+#### Actualizado: PDF Certificado de Trabajo con garantías por ítem y T&C dinámicos
+- **`reports/pdf_operacion_garantia.php`**: Reescrito completamente. Consultas con JOIN a tabla `garantia` para fechas de mano de obra por cada trabajo/dispositivo. Columna "Garantía hasta" condicional en tablas de repuestos y programas: solo aparece si al menos 1 ítem tiene garantía. Mano de obra de garantía se muestra por dispositivo (no global). Reemplazada sección fija "Garantía" por `draw_terminos_condiciones()` dinámica que se adapta según lo que exista (mano de obra, repuestos con/sin garantía, programas con/sin garantía). Parámetro `incluir_garantia` (0/1) leído desde POST. Función `calcular_datos_garantia()` analiza repuestos y programas para determinar qué cláusulas incluir.

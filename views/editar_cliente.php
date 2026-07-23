@@ -57,13 +57,28 @@ $fila_usuario = $resultado->fetch_assoc();
                     <label class="form-label">Apellido</label>
                     <input type="text" class="form-control" name="apellido" value="<?php echo htmlspecialchars($fila_usuario['apellido']); ?>" placeholder="Apellidos" required>
                 </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tipo de Identificaci&oacute;n</label>
+                        <select name="tipo_identificacion" class="form-select">
+                            <option value="ninguno" <?php echo ($fila_usuario['tipo_identificacion'] ?? 'ninguno') === 'ninguno' ? 'selected' : ''; ?>>Ninguno</option>
+                            <option value="cc" <?php echo ($fila_usuario['tipo_identificacion'] ?? '') === 'cc' ? 'selected' : ''; ?>>C&eacute;dula de Ciudadan&iacute;a (CC)</option>
+                            <option value="nit" <?php echo ($fila_usuario['tipo_identificacion'] ?? '') === 'nit' ? 'selected' : ''; ?>>NIT</option>
+                            <option value="otro" <?php echo ($fila_usuario['tipo_identificacion'] ?? '') === 'otro' ? 'selected' : ''; ?>>Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">N&uacute;mero de Identificaci&oacute;n</label>
+                        <input type="text" class="form-control" name="identificacion" value="<?php echo htmlspecialchars($fila_usuario['identificacion'] ?? ''); ?>" placeholder="Opcional">
+                    </div>
+                </div>
                 <div class="mb-3">
-                    <label class="form-label">Correo Electrónico</label>
-                    <input type="email" class="form-control" name="correo" value="<?php echo htmlspecialchars($fila_usuario['correo']); ?>" placeholder="Correo electrónico" required>
+                    <label class="form-label">Correo Electr&oacute;nico</label>
+                    <input type="email" class="form-control" name="correo" value="<?php echo htmlspecialchars($fila_usuario['correo']); ?>" placeholder="Correo electr&oacute;nico">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Teléfono</label>
-                    <input type="text" class="form-control" name="telefono" value="<?php echo htmlspecialchars($fila_usuario['telefono']); ?>" placeholder="Teléfono" required>
+                    <input type="text" class="form-control" name="telefono" value="<?php echo htmlspecialchars($fila_usuario['telefono']); ?>" placeholder="Tel&eacute;fono">
                 </div>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                     <button type="submit" class="btn btn-primary rounded-pill px-4">

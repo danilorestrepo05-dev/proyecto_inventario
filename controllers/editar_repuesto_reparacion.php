@@ -1,0 +1,105 @@
+<?php
+session_start();
+include("../config/conexion.php");
+include("../config/csrf.php");
+include("../config/historial.php");
+
+if (!isset($_SESSION['usuario'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
+if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+    echo json_encode(['ok' => false, 'mensaje' => 'Token CSRF invalido']);
+    exit();
+}
+
+$id_reparacion_repuesto = intval($_POST['id_reparacion_repuesto']);
+$id_trabajo = intval($_POST['id_trabajo']);
+$cantidad = intval($_POST['cantidad']);
+$precio_unitario = floatval($_POST['precio_unitario']);
+$garantia_proveedor_dias = intval($_POST['garantia_proveedor_dias']);
+
+if ($cantidad <= 0) {
+    echo json_encode(['ok' => false, 'mensaje' => 'La cantidad debe ser mayor a 0']);
+    exit();
+}
+
+// Obtener datos actuales para ajustar stock
+$sql_actual = "SELECT ID_producto, cantidad AS cantidad_actual FROM reparacion_repuesto WHERE ID_reparacion_repuesto = ?";
+$stmt = $conn->prepare($sql_actual);
+$stmt->bind_param("i", $id_reparacion_repuesto);
+$stmt->execute();
+$actual = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$actual) {
+    echo json_encode(['ok' => false, 'mensaje' => 'Repuesto no encontrado']);
+    exit();
+}
+
+$diferencia = $cantidad - $actual['cantidad_actual'];
+
+// Verificar stock si se aumenta cantidad
+if ($diferencia > 0) {
+    $sql_stock = "SELECT stock, nombre FROM producto WHERE ID_producto = ?";
+    $stmt_stock = $conn->prepare($sql_stock);
+    $stmt_stock->bind_param("i", $actual['ID_producto']);
+    $stmt_stock->execute();
+    $info = $stmt_stock->get_result()->fetch_assoc();
+    $stmt_stock->close();
+
+    if ($info['stock'] < $diferencia) {
+        echo json_encode(['ok' => false, 'mensaje' => "Stock insuficiente para {$info['nombre']}. Disponible: {$info['stock']}"]);
+        exit();
+    }
+}
+
+$conn->begin_transaction();
+
+try {
+    $sql = "UPDATE reparacion_repuesto SET cantidad=?, precio_unitario=?, garantia_proveedor_dias=? WHERE ID_reparacion_repuesto=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiii", $cantidad, $precio_unitario, $garantia_proveedor_dias, $id_reparacion_repuesto);
+    if (!$stmt->execute()) {
+        throw new Exception("Error al actualizar repuesto: " . $conn->error);
+    }
+    $stmt->close();
+
+    if (isset($_FILES['factura_proveedor']) && $_FILES['factura_proveedor']['error'] === UPLOAD_ERR_OK) {
+        $directorio = __DIR__ . '/../assets/uploads/garantias/';
+        if (!is_dir($directorio)) {
+            mkdir($directorio, 0755, true);
+        }
+        $extension = pathinfo($_FILES['factura_proveedor']['name'], PATHINFO_EXTENSION);
+        $nombre_archivo = 'garantia_' . $id_trabajo . '_' . time() . '.' . $extension;
+        $ruta_adjunto = 'assets/uploads/garantias/' . $nombre_archivo;
+        move_uploaded_file($_FILES['factura_proveedor']['tmp_name'], $directorio . $nombre_archivo);
+
+        $sql_adj = "UPDATE reparacion_repuesto SET factura_proveedor_adjunto=? WHERE ID_reparacion_repuesto=?";
+        $stmt_adj = $conn->prepare($sql_adj);
+        $stmt_adj->bind_param("si", $ruta_adjunto, $id_reparacion_repuesto);
+        $stmt_adj->execute();
+        $stmt_adj->close();
+    }
+
+    // Ajustar stock
+    if ($diferencia != 0) {
+        $sql_stock = "UPDATE producto SET stock = stock - ? WHERE ID_producto = ?";
+        $stmt_stock = $conn->prepare($sql_stock);
+        $stmt_stock->bind_param("ii", $diferencia, $actual['ID_producto']);
+        if (!$stmt_stock->execute()) {
+            throw new Exception("Error al ajustar stock: " . $conn->error);
+        }
+        $stmt_stock->close();
+    }
+
+    $conn->commit();
+    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto actualizado en trabajo #' . $id_trabajo);
+    mysqli_close($conn);
+    echo json_encode(['ok' => true, 'mensaje' => 'Repuesto actualizado correctamente']);
+} catch (Exception $e) {
+    $conn->rollback();
+    mysqli_close($conn);
+    echo json_encode(['ok' => false, 'mensaje' => $e->getMessage()]);
+}
