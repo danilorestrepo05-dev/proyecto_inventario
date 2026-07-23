@@ -352,7 +352,7 @@ function draw_programas_table($pdf, $result_prog, $incluir_garantia) {
     $pdf->Ln(3);
 }
 
-function draw_terminos_condiciones($pdf, $datos) {
+function draw_terminos_condiciones($pdf, $datos, $incluir_garantia) {
     draw_header_bar($pdf, 'TÉRMINOS Y CONDICIONES');
     $pdf->SetFont('Arial', '', 8);
 
@@ -360,30 +360,31 @@ function draw_terminos_condiciones($pdf, $datos) {
     $clausulas[] = "1. La garantía cubre únicamente el trabajo técnico realizado por nuestro personal autorizado.";
     $clausulas[] = "2. No aplica por mal uso, daños físicos por golpes, líquidos derramados, sobretensión eléctrica o manipulación por terceros ajenos a CompuMasterLD.";
     $clausulas[] = "3. Para hacer válida cualquier reclamación, el cliente debe presentar este certificado de servicio.";
-    $clausulas[] = "4. El tiempo máximo para presentar reclamaciones es de 30 días calendario después de vencido el plazo de garantía.";
+    $clausulas[] = "4. El cliente podrá presentar reclamaciones dentro del plazo de garantía vigente. Una vez vencido este plazo, dispondrá de 30 días calendario adicionales para reportar fallas que no hubiese podido identificar en el uso normal del equipo.";
     $clausulas[] = "5. CompuMasterLD no se responsabiliza por datos perdidos durante el proceso de reparación.";
 
-    $num = 6;
-
-    if ($datos['tiene_gar_mano_obra']) {
-        $clausulas[] = "{$num}. La mano de obra tiene una garantía individual por trabajo según se indica en cada sección de dispositivo. Los plazos cuentan a partir de la fecha de entrega.";
-        $num++;
-    }
-    if ($datos['tiene_gar_repuestos']) {
-        $clausulas[] = "{$num}. Los repuestos instalados tienen garantía del proveedor por el plazo indicado en cada ítem de la tabla de repuestos.";
-        $num++;
-    }
-    if ($datos['sin_gar_repuestos']) {
-        $clausulas[] = "{$num}. Algunos repuestos fueron instalados sin garantía por parte del proveedor, el cliente asume la responsabilidad de los mismos.";
-        $num++;
-    }
-    if ($datos['tiene_gar_programas']) {
-        $clausulas[] = "{$num}. Los programas instalados tienen garantía por el plazo indicado en cada ítem de la tabla de programas.";
-        $num++;
-    }
-    if ($datos['sin_gar_programas']) {
-        $clausulas[] = "{$num}. Algunos programas fueron instalados sin garantía, su uso queda bajo responsabilidad del cliente.";
-        $num++;
+    if ($incluir_garantia) {
+        $num = 6;
+        if ($datos['tiene_gar_mano_obra']) {
+            $clausulas[] = "{$num}. La mano de obra tiene una garantía individual por trabajo según se indica en cada sección de dispositivo. Los plazos cuentan a partir de la fecha de entrega.";
+            $num++;
+        }
+        if ($datos['tiene_gar_repuestos']) {
+            $clausulas[] = "{$num}. Los repuestos instalados tienen garantía del proveedor por el plazo indicado en cada ítem de la tabla de repuestos.";
+            $num++;
+        }
+        if ($datos['sin_gar_repuestos']) {
+            $clausulas[] = "{$num}. Algunos repuestos fueron instalados sin garantía por parte del proveedor, el cliente asume la responsabilidad de los mismos.";
+            $num++;
+        }
+        if ($datos['tiene_gar_programas']) {
+            $clausulas[] = "{$num}. Los programas instalados tienen garantía por el plazo indicado en cada ítem de la tabla de programas.";
+            $num++;
+        }
+        if ($datos['sin_gar_programas']) {
+            $clausulas[] = "{$num}. Algunos programas fueron instalados sin garantía, su uso queda bajo responsabilidad del cliente.";
+            $num++;
+        }
     }
 
     $texto = implode(' ', $clausulas);
@@ -478,6 +479,6 @@ draw_repuestos_table($pdf, $result_rep, $incluir_garantia);
 draw_programas_table($pdf, $result_prog, $incluir_garantia);
 
 $datos_gar = calcular_datos_garantia($result_rep, $result_prog, $garantias_por_dispositivo ?? [], $trabajos_por_dispositivo ?? []);
-draw_terminos_condiciones($pdf, $datos_gar);
+draw_terminos_condiciones($pdf, $datos_gar, $incluir_garantia);
 
 $pdf->Output('I', 'certificado_trabajo_' . date('Y-m-d') . '.pdf');

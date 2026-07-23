@@ -987,3 +987,11 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Corregido: T&C se mostraban como lista vertical ocupando mucho espacio vertical
 - **`reports/pdf_operacion_garantia.php`**: Reescrita `draw_terminos_condiciones()` para concatenar todas las cláusulas en un solo párrafo corrido con `implode(' ', $clausulas)` y renderizar con un solo `MultiCell`. Ocupan el ancho completo de la página y se enumeran inline.
+
+### 22/07/2026 — Cláusula 4 legal + T&C condicionales por checkbox
+
+#### Actualizado: Cláusula 4 de T&C reformulada para consistencia legal
+- **`reports/pdf_operacion_garantia.php`**: Cláusula 4 reformulada de "El tiempo máximo para presentar reclamaciones es de 30 días calendario después de vencido el plazo de garantía" a "El cliente podrá presentar reclamaciones dentro del plazo de garantía vigente. Una vez vencido este plazo, dispondrá de 30 días calendario adicionales para reportar fallas que no hubiese podido identificar en el uso normal del equipo."
+
+#### Actualizado: Cláusulas dinámicas de garantía solo se muestran si checkbox está marcado
+- **`reports/pdf_operacion_garantia.php`**: Las cláusulas 6+ (mano de obra individual, repuestos con/sin garantía, programas con/sin garantía) ahora están dentro de un bloque `if ($incluir_garantia)`. Al desmarcar el checkbox, solo se muestran las 5 cláusulas base. La función `draw_terminos_condiciones()` ahora recibe `$incluir_garantia` como tercer parámetro.
