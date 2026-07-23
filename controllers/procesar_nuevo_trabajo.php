@@ -35,7 +35,7 @@ if ($stmt->execute()) {
     $row = $res->fetch_assoc();
     $stmt_serv->close();
 
-    registrar_cambio($conn, 'servicio', 'editar', $row['ID_servicio'], 'Trabajo "' . $tipo_trabajo . '" agregado al dispositivo #' . $id_dispositivo);
+    registrar_cambio($conn, 'servicio', 'editar', $row['ID_servicio'], 'Trabajo "' . $tipo_trabajo . '" creado en dispositivo #' . $id_dispositivo . ' - Problema: ' . substr($problema_reportado, 0, 80));
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Trabajo agregado correctamente', 'id_trabajo' => $id_trabajo]);
 } else {

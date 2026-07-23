@@ -119,7 +119,7 @@ if ($stmt->execute()) {
     $stmt_serv->close();
     $id_servicio = $row_serv['ID_servicio'];
 
-    registrar_cambio($conn, 'servicio', 'editar', $id_servicio, 'Trabajo #' . $id_trabajo . ' actualizado - Estado: ' . $estado);
+    registrar_cambio($conn, 'servicio', 'editar', $id_servicio, 'Trabajo #' . $id_trabajo . ' actualizado - Estado: ' . $estado . ' - Diagnóstico: ' . substr($diagnostico, 0, 60));
     $stmt->close();
     mysqli_close($conn);
     header("Location: ../views/editar_trabajo.php?id=$id_trabajo&mensaje=Trabajo actualizado correctamente#tab-info");

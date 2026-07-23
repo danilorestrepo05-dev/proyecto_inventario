@@ -26,7 +26,10 @@ if ($cantidad <= 0) {
 }
 
 // Obtener datos actuales para ajustar stock
-$sql_actual = "SELECT ID_producto, cantidad AS cantidad_actual, precio_unitario AS precio_actual, ID_orden_venta FROM reparacion_repuesto WHERE ID_reparacion_repuesto = ?";
+$sql_actual = "SELECT rr.ID_producto, rr.cantidad AS cantidad_actual, rr.precio_unitario AS precio_actual, rr.ID_orden_venta, p.nombre AS producto_nombre
+               FROM reparacion_repuesto rr
+               INNER JOIN producto p ON rr.ID_producto = p.ID_producto
+               WHERE rr.ID_reparacion_repuesto = ?";
 $stmt = $conn->prepare($sql_actual);
 $stmt->bind_param("i", $id_reparacion_repuesto);
 $stmt->execute();
@@ -117,7 +120,7 @@ try {
     }
 
     $conn->commit();
-    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto actualizado en trabajo #' . $id_trabajo);
+    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto "' . $actual['producto_nombre'] . '" (x' . $cantidad . ') actualizado en trabajo #' . $id_trabajo);
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Repuesto actualizado correctamente']);
 } catch (Exception $e) {

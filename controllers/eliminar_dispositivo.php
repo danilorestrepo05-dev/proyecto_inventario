@@ -36,7 +36,7 @@ $stmt_del = @$conn->prepare($sql_del);
 $stmt_del->bind_param("i", $id_dispositivo);
 
 if ($stmt_del->execute()) {
-    registrar_cambio($conn, 'servicio', 'eliminar', $id_servicio, 'Dispositivo "' . $disp['dispositivo'] . '" eliminado del servicio #' . $id_servicio);
+    registrar_cambio($conn, 'servicio', 'eliminar', $id_servicio, 'Dispositivo "' . $disp['dispositivo'] . ' ' . trim(($disp['marca'] ?? '') . ' ' . ($disp['modelo'] ?? '')) . '" eliminado del servicio #' . $id_servicio);
     $stmt_del->close();
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Dispositivo eliminado correctamente']);

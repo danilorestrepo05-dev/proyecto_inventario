@@ -24,7 +24,7 @@ if (!$stmt) { echo json_encode(['ok' => false, 'mensaje' => 'Error de BD']); exi
 $stmt->bind_param("ssssi", $dispositivo, $marca, $modelo, $numero_serie, $id_dispositivo);
 
 if ($stmt->execute()) {
-    registrar_cambio($conn, 'servicio', 'editar', $id_dispositivo, 'Dispositivo #' . $id_dispositivo . ' actualizado');
+    registrar_cambio($conn, 'servicio', 'editar', $id_dispositivo, 'Dispositivo "' . $dispositivo . ' ' . trim($marca . ' ' . $modelo) . '" actualizado en servicio #' . $id_dispositivo);
     $stmt->close();
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Dispositivo actualizado correctamente']);

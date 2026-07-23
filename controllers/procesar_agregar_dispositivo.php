@@ -25,7 +25,7 @@ $stmt->bind_param("issss", $id_servicio, $dispositivo, $marca, $modelo, $numero_
 
 if ($stmt->execute()) {
     $id_dispositivo = $conn->insert_id;
-    registrar_cambio($conn, 'servicio', 'editar', $id_servicio, 'Dispositivo "' . $dispositivo . '" agregado al servicio #' . $id_servicio);
+    registrar_cambio($conn, 'servicio', 'editar', $id_servicio, 'Dispositivo "' . $dispositivo . ' ' . trim($marca . ' ' . $modelo) . '" agregado al servicio #' . $id_servicio);
     $stmt->close();
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Dispositivo agregado correctamente', 'id_dispositivo' => $id_dispositivo]);

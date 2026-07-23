@@ -129,7 +129,7 @@ try {
 
     $conn->commit();
 
-    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto agregado al trabajo #' . $id_trabajo);
+    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto "' . $producto_info['nombre'] . '" (x' . $cantidad . ') agregado al trabajo #' . $id_trabajo);
     mysqli_close($conn);
 
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {

@@ -46,7 +46,7 @@ $stmt_del = @$conn->prepare($sql_del);
 $stmt_del->bind_param("i", $id_servicio);
 
 if ($stmt_del->execute()) {
-    registrar_cambio($conn, 'servicio', 'eliminar', $id_servicio, 'Servicio "' . $fila['nombre'] . '" eliminado');
+    registrar_cambio($conn, 'servicio', 'eliminar', $id_servicio, 'Servicio "' . $fila['nombre'] . '" desactivado (soft delete)');
     $stmt_del->close();
     mysqli_close($conn);
     header("Location: ../views/reparaciones.php?mensaje=Servicio eliminado correctamente");

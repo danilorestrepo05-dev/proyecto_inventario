@@ -75,7 +75,7 @@ try {
 
     $conn->commit();
 
-    registrar_cambio($conn, 'servicio', 'crear', $id_servicio, 'Servicio #' . $id_servicio . ' creado para ' . $dispositivo);
+    registrar_cambio($conn, 'servicio', 'crear', $id_servicio, 'Servicio "' . $nombre_servicio . '" creado - Dispositivo: ' . $dispositivo . ' ' . trim($marca . ' ' . $modelo));
     mysqli_close($conn);
 
     header("Location: ../views/detalle_servicio.php?id=$id_servicio&mensaje=Servicio registrado correctamente");

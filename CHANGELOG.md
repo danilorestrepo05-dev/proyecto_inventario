@@ -1030,3 +1030,21 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: Filtro de módulo en Historial de Cambios incluye Servicio Técnico
 - **`reports/historial.php`**: Agregada opción "Servicio Técnico" (value=`servicio`) al select de filtro de módulo. Badge `bg-dark` con icono `bi-tools` para las entradas del módulo servicio.
+
+### 22/07/2026 — Descripciones mejoradas en Historial + filtro Reparación
+
+#### Actualizado: Descripciones más detalladas en historial de Servicio Técnico
+- **`controllers/procesar_nuevo_servicio.php`**: Descripción incluye nombre del servicio y dispositivo con marca/modelo.
+- **`controllers/procesar_agregar_dispositivo.php`**: Descripción incluye marca y modelo del dispositivo.
+- **`controllers/procesar_edicion_dispositivo.php`**: Descripción incluye nombre completo del dispositivo y servicio.
+- **`controllers/eliminar_dispositivo.php`**: Descripción incluye marca y modelo del dispositivo eliminado.
+- **`controllers/procesar_nuevo_trabajo.php`**: Descripción incluye problema reportado (máx. 80 chars).
+- **`controllers/procesar_edicion_trabajo.php`**: Descripción incluye estado y diagnóstico (máx. 60 chars).
+- **`controllers/eliminar_trabajo.php`**: Descripción incluye estado del trabajo eliminado.
+- **`controllers/eliminar_servicio.php`**: Descripción indica "desactivado (soft delete)".
+- **`controllers/procesar_repuesto_reparacion.php`**: Descripción incluye nombre del producto y cantidad.
+- **`controllers/editar_repuesto_reparacion.php`**: Query ampliada con JOIN a producto para incluir nombre y cantidad.
+- **`controllers/eliminar_repuesto_reparacion.php`**: Query ampliada con JOIN a producto para incluir nombre y cantidad.
+
+#### Actualizado: Filtro de módulo incluye opción Reparación
+- **`reports/historial.php`**: Agregada opción "Reparación" (value=`reparacion`) al select de filtro. Badge `bg-secondary` con icono `bi-wrench` para datos históricos del módulo reparación.

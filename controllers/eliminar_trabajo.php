@@ -37,7 +37,7 @@ $stmt_del = @$conn->prepare($sql_del);
 $stmt_del->bind_param("i", $id_trabajo);
 
 if ($stmt_del->execute()) {
-    registrar_cambio($conn, 'servicio', 'eliminar', $trab['ID_servicio'], 'Trabajo "' . $trab['tipo_trabajo'] . '" eliminado del dispositivo #' . $trab['ID_dispositivo']);
+    registrar_cambio($conn, 'servicio', 'eliminar', $trab['ID_servicio'], 'Trabajo "' . $trab['tipo_trabajo'] . '" eliminado del dispositivo #' . $trab['ID_dispositivo'] . ' - Estado: ' . $trab['estado']);
     $stmt_del->close();
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Trabajo eliminado correctamente']);

@@ -92,6 +92,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                             <option value="orden_compra" <?php echo $filtro_modulo == 'orden_compra' ? 'selected' : ''; ?>>Órdenes compra</option>
                             <option value="usuario" <?php echo $filtro_modulo == 'usuario' ? 'selected' : ''; ?>>Usuarios</option>
                             <option value="servicio" <?php echo $filtro_modulo == 'servicio' ? 'selected' : ''; ?>>Servicio Técnico</option>
+                            <option value="reparacion" <?php echo $filtro_modulo == 'reparacion' ? 'selected' : ''; ?>>Reparación</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -159,6 +160,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                                         case 'orden_compra': $badge_modulo = 'bg-danger'; break;
                                         case 'usuario': $badge_modulo = 'bg-info text-dark'; break;
                                         case 'servicio': $badge_modulo = 'bg-dark'; break;
+                                        case 'reparacion': $badge_modulo = 'bg-secondary'; break;
                                         default: $badge_modulo = 'bg-secondary';
                                     }
 
@@ -180,6 +182,7 @@ if (!empty($filtro_fecha_fin)) $params_paginacion .= '&fecha_fin=' . urlencode($
                                         case 'orden_compra': $icono_modulo = 'bi-cart3'; break;
                                         case 'usuario': $icono_modulo = 'bi-person-gear'; break;
                                         case 'servicio': $icono_modulo = 'bi-tools'; break;
+                                        case 'reparacion': $icono_modulo = 'bi-wrench'; break;
                                         default: $icono_modulo = 'bi-info-circle';
                                     }
 

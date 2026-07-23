@@ -18,7 +18,10 @@ $id_reparacion_repuesto = intval($_POST['id_reparacion_repuesto']);
 $id_trabajo = intval($_POST['id_trabajo']);
 
 // Obtener datos antes de eliminar para devolver stock y eliminar venta
-$sql = "SELECT ID_producto, cantidad, ID_orden_venta FROM reparacion_repuesto WHERE ID_reparacion_repuesto = ?";
+$sql = "SELECT rr.ID_producto, rr.cantidad, rr.ID_orden_venta, p.nombre AS producto_nombre
+        FROM reparacion_repuesto rr
+        INNER JOIN producto p ON rr.ID_producto = p.ID_producto
+        WHERE rr.ID_reparacion_repuesto = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id_reparacion_repuesto);
 $stmt->execute();
@@ -91,7 +94,7 @@ try {
     $stmt_del->close();
 
     $conn->commit();
-    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto eliminado del trabajo #' . $id_trabajo);
+    registrar_cambio($conn, 'servicio', 'editar', $id_trabajo, 'Repuesto "' . $fila['producto_nombre'] . '" (x' . $fila['cantidad'] . ') eliminado del trabajo #' . $id_trabajo);
     mysqli_close($conn);
     echo json_encode(['ok' => true, 'mensaje' => 'Repuesto eliminado. Stock devuelto.']);
 } catch (Exception $e) {
