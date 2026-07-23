@@ -1025,3 +1025,8 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 
 #### Actualizado: Tabla de ventas muestra badge de origen
 - **`views/ventas.php`**: Agregada columna "Origen" con badge: `<span class='badge bg-info'>Servicio</span>` para ventas de servicio técnico y `<span class='badge bg-secondary'>Manual</span>` para ventas creadas normalmente.
+
+### 22/07/2026 — Filtro de Historial: módulo Servicio Técnico
+
+#### Actualizado: Filtro de módulo en Historial de Cambios incluye Servicio Técnico
+- **`reports/historial.php`**: Agregada opción "Servicio Técnico" (value=`servicio`) al select de filtro de módulo. Badge `bg-dark` con icono `bi-tools` para las entradas del módulo servicio.
