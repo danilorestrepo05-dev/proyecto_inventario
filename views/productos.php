@@ -65,6 +65,7 @@ setTimeout(function() {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
     <title>Gestión de productos</title>
+    <link rel="icon" type="image/png" href="../assets/img/compumasterldlogo.png">
 </head>
 <body class="custom-body">
 

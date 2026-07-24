@@ -21,6 +21,7 @@ Sistema web para el monitoreo de existencias, compras, ventas, servicio técnico
 - **Seguridad** — Prepared statements, tokens CSRF, hash de contraseñas con `password_verify()`, headers anti-caché, rate limiting en login
 - **Soft Delete** — Activar/desactivar registros (clientes, proveedores, productos, usuarios, servicios)
 - **Borrador automático** — Formularios de ventas y órdenes guardan progreso en localStorage
+- **Favicon** — Logo CompuMasterLD en todas las pestañas del navegador (31 páginas)
 
 ## Stack Tecnológico
 
@@ -84,7 +85,7 @@ Sistema web para el monitoreo de existencias, compras, ventas, servicio técnico
 Proyecto_inventario/
 ├── assets/
 │   ├── css/          → Bootstrap 5 + estilos personalizados
-│   ├── img/          → Logo del sistema y logo PDFs
+│   ├── img/          → Logo del sistema, logo PDFs y favicon
 │   ├── js/           → Bootstrap 5 + script.js (eye toggle, búsqueda)
 │   └── uploads/      → Archivos adjuntos (garantías)
 ├── config/
@@ -98,7 +99,8 @@ Proyecto_inventario/
 ├── views/
 │   ├── includes/     → navbar.php (reutilizable con variable $nav_base)
 │   └── *.php         → Formularios CRUD, tablas con paginación y vistas de servicio
-├── sql_modulo_reparaciones.sql → Script de tablas de servicio técnico y migraciones
+├── sql_modulo_reparaciones.sql → Script de migración local (no subir a hosting)
+├── limpiar_infinityfree.sql    → Script de limpieza para InfinityFree
 ├── index.php         → Página de login (punto de entrada)
 ├── menu.php          → Dashboard principal
 ├── CHANGELOG.md      → Documentación completa de cambios
@@ -141,6 +143,21 @@ servicio (ID_servicio, nombre, ID_cliente, ID_usuario_tecnico, mano_obra_costo, 
 3. Desde el dashboard, acceder a los módulos de gestión
 4. Los usuarios **Admin** tienen acceso completo al historial de cambios y gestión de usuarios
 5. Los usuarios **Operario** pueden ver tablas, informes y crear/editar comandos
+
+## Despliegue en InfinityFree
+
+1. Crear base de datos `inventariodb` en phpMyAdmin de InfinityFree
+2. Importar la BD completa desde el respaldo local
+3. Ejecutar `limpiar_infinityfree.sql` para eliminar datos de prueba
+4. Generar hash de contraseña:
+   ```cmd
+   C:\xampp\php\php.exe -r "echo password_hash('admin123', PASSWORD_DEFAULT);"
+   ```
+5. Actualizar la contraseña del Admin en phpMyAdmin:
+   ```sql
+   UPDATE usuario SET clave = 'EL_HASH_GENERADO' WHERE ID_usuario = 1;
+   ```
+6. Subir archivos (excluir `.git/`, `AGENTS.md`, `opencode.json`, `sql_modulo_reparaciones.sql`, `sql_inventariodb_limpio.sql`, `limpiar_infinityfree.sql`)
 
 ## Licencia
 
