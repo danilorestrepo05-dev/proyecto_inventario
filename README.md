@@ -22,6 +22,7 @@ Sistema web para el monitoreo de existencias, compras, ventas, servicio técnico
 - **Soft Delete** — Activar/desactivar registros (clientes, proveedores, productos, usuarios, servicios)
 - **Borrador automático** — Formularios de ventas y órdenes guardan progreso en localStorage
 - **Favicon** — Logo CompuMasterLD en todas las pestañas del navegador (31 páginas)
+- **Landing Page** — Página pública HTML5 con servicios, contacto y ubicación de CompuMasterLD (acceso antes del login)
 
 ## Stack Tecnológico
 
@@ -84,8 +85,8 @@ Sistema web para el monitoreo de existencias, compras, ventas, servicio técnico
 ```
 Proyecto_inventario/
 ├── assets/
-│   ├── css/          → Bootstrap 5 + estilos personalizados
-│   ├── img/          → Logo del sistema, logo PDFs y favicon
+│   ├── css/          → Bootstrap 5 + estilos personalizados + landing.css
+│   ├── img/          → Logo del sistema, logo PDFs, favicon y logos optimizados landing
 │   ├── js/           → Bootstrap 5 + script.js (eye toggle, búsqueda)
 │   └── uploads/      → Archivos adjuntos (garantías)
 ├── config/
@@ -101,7 +102,8 @@ Proyecto_inventario/
 │   └── *.php         → Formularios CRUD, tablas con paginación y vistas de servicio
 ├── sql_modulo_reparaciones.sql → Script de migración local (no subir a hosting)
 ├── limpiar_infinityfree.sql    → Script de limpieza para InfinityFree
-├── index.php         → Página de login (punto de entrada)
+├── index.html        → Landing page pública de CompuMasterLD (HTML5 puro)
+├── login.php         → Página de login del SGI (punto de acceso restringido)
 ├── menu.php          → Dashboard principal
 ├── CHANGELOG.md      → Documentación completa de cambios
 └── AGENTS.md         → Instrucciones para asistentes de desarrollo
@@ -138,11 +140,12 @@ servicio (ID_servicio, nombre, ID_cliente, ID_usuario_tecnico, mano_obra_costo, 
 
 ## Uso
 
-1. Crear un usuario con rol **Admin** en la base de datos
-2. Iniciar sesión en `http://localhost/Proyecto_inventario/`
-3. Desde el dashboard, acceder a los módulos de gestión
-4. Los usuarios **Admin** tienen acceso completo al historial de cambios y gestión de usuarios
-5. Los usuarios **Operario** pueden ver tablas, informes y crear/editar comandos
+1. Acceder a `http://localhost/Proyecto_inventario/` para ver la **landing page** pública
+2. Crear un usuario con rol **Admin** en la base de datos
+3. Iniciar sesión en `http://localhost/Proyecto_inventario/login.php`
+4. Desde el dashboard, acceder a los módulos de gestión
+5. Los usuarios **Admin** tienen acceso completo al historial de cambios y gestión de usuarios
+6. Los usuarios **Operario** pueden ver tablas, informes y crear/editar comandos
 
 ## Despliegue en InfinityFree
 

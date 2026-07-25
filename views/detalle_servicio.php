@@ -5,7 +5,7 @@ include("../config/csrf.php");
 
 $id_servicio = intval($_GET['id'] ?? 0);
 if ($id_servicio <= 0) { header("Location: reparaciones.php"); exit(); }
-if (!isset($_SESSION['usuario'])) { header("Location: ../index.php"); exit(); }
+if (!isset($_SESSION['usuario'])) { header("Location: ../login.php"); exit(); }
 
 // Consulta principal: servicio con datos del cliente y técnico
 $sql = "SELECT s.*, c.nombre AS cliente_nombre, c.apellido AS cliente_apellido,

@@ -7,7 +7,7 @@ if (!csrf_validate($_POST['csrf_token'] ?? '')) {
     exit();
 }
 if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 

@@ -11,7 +11,7 @@ if ($id_trabajo <= 0) {
 }
 
 if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 

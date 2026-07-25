@@ -3,7 +3,7 @@ include("config/conexion.php");
 session_start();
 
 if (!isset($_SESSION['usuario'])) {
-    header("Location: index.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -19,24 +19,6 @@ if (isset($_GET['mensaje'])) {
 
 $rol = $_SESSION['rol'];
 ?>
-
-<script>
-setTimeout(function() {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-        alert.style.transition = 'opacity 0.5s';
-        alert.style.opacity = '0';
-        setTimeout(function() {
-            alert.remove();
-            if (window.history.replaceState) {
-                const url = window.location.href.split('?')[0];
-                window.history.replaceState({}, document.title, url);
-            }
-        }, 500);
-    });
-}, 5000);
-</script>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -202,5 +184,21 @@ setTimeout(function() {
 
 <script src="assets/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/script.js"></script>
+<script>
+setTimeout(function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        alert.style.transition = 'opacity 0.5s';
+        alert.style.opacity = '0';
+        setTimeout(function() {
+            alert.remove();
+            if (window.history.replaceState) {
+                const url = window.location.href.split('?')[0];
+                window.history.replaceState({}, document.title, url);
+            }
+        }, 500);
+    });
+}, 5000);
+</script>
 </body>
 </html>

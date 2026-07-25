@@ -114,7 +114,7 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
 <script>
 window.addEventListener('pageshow', function(e) {
   if (e.persisted || (performance.navigation && performance.navigation.type === 2)) {
-    window.location.href = '<?php echo $nav_base; ?>/index.php';
+    window.location.href = '<?php echo $nav_base; ?>/login.php';
   }
 });
 </script>

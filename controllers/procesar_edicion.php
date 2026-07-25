@@ -4,7 +4,7 @@ include("../config/conexion.php");
 include("../config/csrf.php");
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 

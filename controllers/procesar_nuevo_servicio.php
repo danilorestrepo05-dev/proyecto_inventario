@@ -7,7 +7,7 @@ include("../config/historial.php");
 
 // Redirigir al login si el usuario no está autenticado
 if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 

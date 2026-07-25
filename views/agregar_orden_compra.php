@@ -3,7 +3,7 @@ include("../config/conexion.php");
 session_start();
 include('../config/csrf.php');
 if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 

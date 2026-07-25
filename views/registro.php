@@ -2,7 +2,7 @@
 include("../config/conexion.php");
 session_start();
 include('../config/csrf.php');
-if (!isset($_SESSION['usuario'])) { header("Location: ../index.php"); exit(); }
+if (!isset($_SESSION['usuario'])) { header("Location: ../login.php"); exit(); }
 if ($_SESSION['rol'] !== 'Admin') { header("Location: ../menu.php"); exit(); }
 ?>
 <!DOCTYPE html>

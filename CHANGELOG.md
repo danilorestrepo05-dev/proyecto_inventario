@@ -1056,3 +1056,30 @@ Todos los controllers ahora usan `mysqli_prepare()` + `bind_param()` en lugar de
 - **`views/editar_trabajo.php`**: Agregados marcadores de sección para encabezado, pestañas (info/repuestos/programas/bitácora), modales CRUD y funciones utilitarias JavaScript.
 - **`views/agregar_servicio.php`**: Agregados marcadores de sección para los tres bloques del formulario: cliente, dispositivo y trabajo.
 - **`views/reparaciones.php`**: Agregados marcadores de sección para encabezado, filtros, tabla principal, paginación y script de alertas.
+
+### 25/07/2026 — Landing Page y reestructura de acceso
+
+#### Nuevo: Landing page pública de CompuMasterLD
+- **`index.html`**: Landing page HTML5 con hero, 8 servicios, sección "¿Por qué elegirnos?", sobre nosotros con certificación Cámara de Comercio, contacto con WhatsApp por técnico y Facebook, mapa de Google Maps.
+- **`assets/css/landing.css`**: Estilos específicos de la landing con paleta de colores clara, degradados, animaciones IntersectionObserver y diseño responsive.
+
+#### Nuevo: Logo optimizado para landing
+- **`assets/img/compumasterld_hero.png`**: Logo adaptado a 1200x400px (52.8 KB) para hero de la landing.
+- **`assets/img/compumasterld_nav.png`**: Logo adaptado a 360x120px (9.8 KB) para navbar.
+- **`assets/img/compumasterld_small.png`**: Logo adaptado a 200x67px (4.4 KB) para usos auxiliares.
+
+#### Actualizado: Login reubicado para acceso restringido
+- **`login.php`**: Página de login movida desde `index.php` para que la landing sea la primera impresión pública del sistema.
+
+#### Actualizado: Redirecciones del sistema
+- **54 archivos PHP**: Todas las redirecciones `index.php` actualizadas a `login.php` (controllers, views, reports).
+
+#### Corregido: Espacio antes del navbar en dashboard
+- **`menu.php`**: Script de auto-eliminación de alertas movido de fuera del `<html>` a dentro del `<body>` para eliminar espacio fantasma antes del navbar.
+
+#### Actualizado: Favicon en todas las páginas
+- **31 archivos PHP**: Agregado `<link rel="icon">` apuntando a `compumasterldlogo.png` en todas las páginas del sistema.
+
+#### Actualizado: Documentación
+- **`README.md`**: Estructura actualizada con landing page, login.php, logos optimizados y sección de uso renovada.
+- **`CHANGELOG.md`**: Documentación de todos los cambios de la landing page.

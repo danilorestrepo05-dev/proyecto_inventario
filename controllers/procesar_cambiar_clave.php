@@ -6,7 +6,7 @@ include("../config/historial.php");
 
 // Verificar que sea Admin
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'Admin') {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 

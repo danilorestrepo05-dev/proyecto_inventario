@@ -2,7 +2,7 @@
 include("../config/conexion.php");
 session_start();
 if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : '';

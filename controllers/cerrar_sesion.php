@@ -7,6 +7,6 @@ header("Pragma: no-cache");
 header("Expires: 0");
 
 session_destroy();
-header("Location: ../index.php");
+header("Location: ../login.php");
 exit();
 ?>

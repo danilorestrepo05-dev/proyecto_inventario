@@ -2,7 +2,7 @@
 include("../config/conexion.php");
 session_start();
 include('../config/csrf.php');
-if (!isset($_SESSION['usuario'])) { header("Location: ../index.php"); exit(); }
+if (!isset($_SESSION['usuario'])) { header("Location: ../login.php"); exit(); }
 
 $clientes = $conn->query("SELECT ID_cliente, nombre, apellido FROM cliente WHERE activo = 1 ORDER BY nombre");
 $usuarios = $conn->query("SELECT ID_usuario, nombre, apellido FROM usuario WHERE activo = 1 ORDER BY nombre");

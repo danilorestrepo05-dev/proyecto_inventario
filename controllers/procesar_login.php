@@ -5,7 +5,7 @@ include("../config/csrf.php");
 include("../config/rate_limit.php");
 
 if (!csrf_validate($_POST['csrf_token'] ?? '')) {
-    header("Location: ../index.php?error=Token CSRF inválido");
+    header("Location: ../login.php?error=Token CSRF inválido");
     exit();
 }
 
@@ -17,7 +17,7 @@ $ip = $_SERVER['REMOTE_ADDR'];
 $bloqueo = verificar_bloqueo($conn, $ip, $documento);
 if ($bloqueo !== true) {
     $conn->close();
-    header("Location: ../index.php?error=" . urlencode($bloqueo));
+    header("Location: ../login.php?error=" . urlencode($bloqueo));
     exit();
 }
 
@@ -35,7 +35,7 @@ if ($resultado->num_rows === 1) {
     // Verificar si el usuario está activo
     if (!$fila['activo']) {
         $conn->close();
-        header("Location: ../index.php?error=Tu cuenta está desactivada. Contacta al administrador.");
+        header("Location: ../login.php?error=Tu cuenta está desactivada. Contacta al administrador.");
         exit();
     }
     
@@ -56,13 +56,13 @@ if ($resultado->num_rows === 1) {
     } else {
         registrar_intento_fallido($conn, $ip, $documento);
         $conn->close();
-        header("Location: ../index.php?error=Usuario o contraseña incorrectos");
+        header("Location: ../login.php?error=Usuario o contraseña incorrectos");
         exit();
     }
 } else {
     registrar_intento_fallido($conn, $ip, $documento);
     $conn->close();
-    header("Location: ../index.php?error=Usuario o contraseña incorrectos");
+    header("Location: ../login.php?error=Usuario o contraseña incorrectos");
     exit();
 }
 ?>
