@@ -53,29 +53,9 @@ Sistema web para el monitoreo de existencias, compras, ventas, servicio técnico
    CREATE DATABASE inventariodb;
    ```
 
-4. Importar la estructura de tablas. Las tablas necesarias son:
-   - `usuario`
-   - `cliente`
-   - `proveedor`
-   - `producto`
-   - `orden_venta` (con columna `origen`: manual/servicio)
-   - `detalle_orden_venta`
-   - `orden_compra`
-   - `detalle_orden_compra`
-   - `historial_cambios`
-   - `login_attempts`
-   - `servicio`
-   - `dispositivo_servicio`
-   - `trabajo`
-   - `reparacion_repuesto` (con FK `ID_orden_venta`)
-   - `programa_instalado` (con campos de garantía)
-   - `garantia`
-   - `bitacora_reparacion`
-   - `bitacora_conocimiento`
+4. Importar el archivo `sql_inventariodb_limpio.sql` desde phpMyAdmin (contiene la estructura completa de 19 tablas, usuario Admin por defecto y comandos de bitácora iniciales).
 
-5. Ejecutar las migraciones del archivo `sql_modulo_reparaciones.sql` si se importa una versión anterior.
-
-6. Acceder al sistema:
+5. Acceder al sistema:
    ```
    http://localhost/Proyecto_inventario/
    ```
@@ -100,11 +80,10 @@ Proyecto_inventario/
 ├── views/
 │   ├── includes/     → navbar.php (reutilizable con variable $nav_base)
 │   └── *.php         → Formularios CRUD, tablas con paginación y vistas de servicio
-├── sql_modulo_reparaciones.sql → Script de migración local (no subir a hosting)
-├── limpiar_infinityfree.sql    → Script de limpieza para InfinityFree
 ├── index.html        → Landing page pública de CompuMasterLD (HTML5 puro)
 ├── login.php         → Página de login del SGI (punto de acceso restringido)
 ├── menu.php          → Dashboard principal
+├── sql_inventariodb_limpio.sql → Estructura de BD (19 tablas + Admin + bitácora)
 ├── CHANGELOG.md      → Documentación completa de cambios
 └── AGENTS.md         → Instrucciones para asistentes de desarrollo
 ```
@@ -146,21 +125,6 @@ servicio (ID_servicio, nombre, ID_cliente, ID_usuario_tecnico, mano_obra_costo, 
 4. Desde el dashboard, acceder a los módulos de gestión
 5. Los usuarios **Admin** tienen acceso completo al historial de cambios y gestión de usuarios
 6. Los usuarios **Operario** pueden ver tablas, informes y crear/editar comandos
-
-## Despliegue en InfinityFree
-
-1. Crear base de datos `inventariodb` en phpMyAdmin de InfinityFree
-2. Importar la BD completa desde el respaldo local
-3. Ejecutar `limpiar_infinityfree.sql` para eliminar datos de prueba
-4. Generar hash de contraseña:
-   ```cmd
-   C:\xampp\php\php.exe -r "echo password_hash('admin123', PASSWORD_DEFAULT);"
-   ```
-5. Actualizar la contraseña del Admin en phpMyAdmin:
-   ```sql
-   UPDATE usuario SET clave = 'EL_HASH_GENERADO' WHERE ID_usuario = 1;
-   ```
-6. Subir archivos (excluir `.git/`, `AGENTS.md`, `opencode.json`, `sql_modulo_reparaciones.sql`, `sql_inventariodb_limpio.sql`, `limpiar_infinityfree.sql`)
 
 ## Licencia
 

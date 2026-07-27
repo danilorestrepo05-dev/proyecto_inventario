@@ -9,6 +9,7 @@ Desktop.ini
 # Archivos de XAMPP/PHP
 *.log
 *.sql
+!sql_inventariodb_limpio.sql
 !.gitignore
 
 # Archivos de respaldo
