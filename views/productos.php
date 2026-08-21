@@ -129,7 +129,7 @@ setTimeout(function() {
               echo $fila['stock'];
             }
             echo "</td>";
-            echo "<td>$" . number_format($fila['precio']) . "</td>";
+            echo "<td>$" . number_format($fila['precio'], 0, ',', '.') . "</td>";
             echo "<td>{$fila['descripcion']}</td>";
             echo "<td>{$fila['fecha']}</td>";
             if ($rol === 'Admin') {
