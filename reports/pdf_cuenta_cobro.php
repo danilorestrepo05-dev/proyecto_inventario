@@ -502,7 +502,6 @@ if ($is_service_mode) {
     }
 
     if ($mano_obra > 0 && $mostrar_precios == 1) {
-        $numero_item++;
         $linea_mo = $numero_item . '. Mano de obra:';
         verificar_cierre($pdf, 15);
         $pdf->SetFont('Arial', 'B', 10);
@@ -512,6 +511,7 @@ if ($is_service_mode) {
         $pdf->MultiCell(0, 5, '   Valor: $' . number_format($mano_obra, 0, ',', '.'), 0, 'L');
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Ln(2);
+        $numero_item++;
     }
 
 // Modo trabajo individual: renderiza un solo dispositivo con su información
