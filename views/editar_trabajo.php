@@ -495,7 +495,7 @@ if (window.location.search.includes('mensaje=')) {
                         <select name="id_producto" id="select_producto" class="form-select" required>
                             <option value="" disabled selected>[Seleccione un producto]</option>
                             <?php while ($p = $productos->fetch_assoc()): ?>
-                                <option value="<?php echo $p['ID_producto']; ?>" data-precio="<?php echo $p['precio']; ?>" data-stock="<?php echo $p['stock']; ?>">
+                                <option value="<?php echo $p['ID_producto']; ?>" data-precio="<?php echo round((float)$p['precio'], 0); ?>" data-stock="<?php echo $p['stock']; ?>">
                                     <?php echo htmlspecialchars($p['nombre']); ?> (Stock: <?php echo $p['stock']; ?>)
                                 </option>
                             <?php endwhile; ?>
@@ -782,9 +782,45 @@ if (window.location.search.includes('mensaje=')) {
 <script>
 var csrfToken = document.querySelector('input[name="csrf_token"]').value;
 var idTrabajo = <?php echo $id_trabajo; ?>;
+var storageKey = 'borrador_trabajo_' + idTrabajo;
+
+// Guarda los campos del formulario de Información en sessionStorage para no perderlos
+// ante un location.reload() provocado al agregar/editar/eliminar repuestos o programas.
+function guardarBorradorInfo() {
+    var campos = ['dispositivo', 'estado', 'tipo_trabajo', 'marca', 'modelo',
+                  'numero_serie', 'problema_reportado', 'diagnostico',
+                  'notas_internas', 'mano_obra_costo', 'garantia_dias'];
+    var datos = {};
+    campos.forEach(function(nombre) {
+        var el = document.querySelector('[name="' + nombre + '"]');
+        if (el) datos[nombre] = el.value;
+    });
+    sessionStorage.setItem(storageKey, JSON.stringify(datos));
+}
+
+// Restaura los campos del formulario de Información desde sessionStorage
+function restaurarBorradorInfo() {
+    var guardado = sessionStorage.getItem(storageKey);
+    if (!guardado) return;
+    try {
+        var datos = JSON.parse(guardado);
+        Object.keys(datos).forEach(function(nombre) {
+            var el = document.querySelector('[name="' + nombre + '"]');
+            if (el && datos[nombre] !== null && datos[nombre] !== undefined) {
+                el.value = datos[nombre];
+            }
+        });
+    } catch (e) {}
+}
+
+// Limpia el borrador cuando los datos ya se guardaron en la BD (redirección con ?mensaje=)
+function limpiarBorradorInfo() {
+    sessionStorage.removeItem(storageKey);
+}
 
 // Recarga la página preservando la pestaña activa en el hash
 function recargarEnMismoTab() {
+    guardarBorradorInfo();
     var tabActivo = document.querySelector('.nav-tabs .nav-link.active');
     var hash = tabActivo ? tabActivo.getAttribute('href') : '';
     if (hash) window.location.hash = hash;
@@ -1032,6 +1068,13 @@ function mostrarAlerta(msg, tipo) {
 
 // Al cargar, restaurar la pestaña activa desde el hash de la URL
 document.addEventListener('DOMContentLoaded', function() {
+    // Si se guardaron los cambios del trabajo, limpiar el borrador de la información
+    if (window.location.search.includes('mensaje=Trabajo actualizado')) {
+        limpiarBorradorInfo();
+    } else {
+        restaurarBorradorInfo();
+    }
+
     document.querySelectorAll('.nav-tabs .nav-link').forEach(function(tab) {
         tab.addEventListener('shown.bs.tab', function(e) {
             history.replaceState(null, null, e.target.getAttribute('href'));

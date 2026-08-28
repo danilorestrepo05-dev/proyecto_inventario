@@ -96,6 +96,7 @@ $productos = $conn->query("SELECT * FROM producto WHERE activo = 1");
         $productos->data_seek(0);
         $arr = [];
         while ($p = $productos->fetch_assoc()) {
+            $p['precio'] = round((float)$p['precio'], 0);
             $arr[] = $p;
         }
         echo json_encode($arr);

@@ -50,7 +50,7 @@ $stmt_estado->close();
 // Actualizar los datos principales del trabajo (diagnóstico, estado, costos, notas)
 $sql = "UPDATE trabajo SET tipo_trabajo=?, problema_reportado=?, diagnostico=?, estado=?, mano_obra_costo=?, notas_internas=? WHERE ID_trabajo=?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssssi", $tipo_trabajo, $problema_reportado, $diagnostico, $estado, $mano_obra_costo, $notas_internas, $id_trabajo);
+$stmt->bind_param("ssssdsi", $tipo_trabajo, $problema_reportado, $diagnostico, $estado, $mano_obra_costo, $notas_internas, $id_trabajo);
 
 if ($stmt->execute()) {
     // Sincronizar los datos del dispositivo asociado al trabajo

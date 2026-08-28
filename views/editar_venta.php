@@ -148,6 +148,7 @@ while ($detalle = $resultado_detalles->fetch_assoc()) {
         $resultado_prod->data_seek(0);
         $arr = [];
         while ($p = $resultado_prod->fetch_assoc()) {
+            $p['precio'] = round((float)$p['precio'], 0);
             $arr[] = $p;
         }
         echo json_encode($arr);
