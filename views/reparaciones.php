@@ -119,6 +119,9 @@ setTimeout(function() {
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
         <h2 class="mb-3 mb-md-0"><i class="bi bi-tools me-2"></i>Soporte T&eacute;cnico</h2>
         <div class="d-flex flex-column flex-sm-row gap-2">
+            <a href="cotizacion.php" class="btn btn-outline-primary rounded-pill">
+                <i class="bi bi-file-earmark-text me-1"></i> Nueva Cotizaci&oacute;n
+            </a>
             <a href="agregar_servicio.php" class="btn btn-primary rounded-pill">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Servicio
             </a>
