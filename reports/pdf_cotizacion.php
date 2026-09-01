@@ -215,7 +215,7 @@ $pdf->Cell(0, 10, t('COTIZACI' . u(211) . 'N'), 0, 1, 'C');
 $pdf->SetTextColor(0, 0, 0);
 
 // Número de cotización con sufijo de tiempo para evitar colisiones (sin correlativo en BD)
-$no_cotizacion = 'No. COTIZACI' . u(211) . 'N-' . date('Y') . '-' . date('His') . '-' . rand(100, 999);
+$no_cotizacion = 'No. COTIZACI' . u(211) . 'N-' . date('Ymd') . '-' . rand(1000, 9999);
 $pdf->SetFont('Arial', 'B', 11);
 $pdf->Cell(0, 6, t($no_cotizacion), 0, 1, 'C');
 
