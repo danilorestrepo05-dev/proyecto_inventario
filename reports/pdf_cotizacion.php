@@ -17,6 +17,7 @@ require(__DIR__ . '/../fpdf/fpdf.php');
 // Datos fijos de la empresa para el encabezado y pie del PDF (sin cuenta bancaria)
 $empresa = [
     'nombre' => 'CompuMasterLD',
+    'nit' => '1041149861-6',
     'tel1' => '319 748 99 30',
     'tel2' => '301 506 04 35',
     'dir' => 'Fredonia - Antioquia',
@@ -321,12 +322,12 @@ $pdf->Ln(2);
 
 $pdf->SetFont('Arial', 'B', 12);
 $pdf->SetTextColor(26, 32, 53);
-$pdf->Cell(115, 8, 'TOTAL: $' . number_format($total_final, 0, ',', '.'), 0, 1, 'R');
+$pdf->Cell(190, 8, 'TOTAL: $' . number_format($total_final, 0, ',', '.'), 0, 1, 'R');
 $pdf->SetTextColor(0, 0, 0);
 
 // Total en letras
 $pdf->SetFont('Arial', 'I', 10);
-$pdf->Cell(195, 6, t(numero_a_letras($total_final) . ' PESOS M/CTE'), 0, 1, 'R');
+$pdf->Cell(190, 6, t(numero_a_letras($total_final) . ' PESOS M/CTE'), 0, 1, 'R');
 $pdf->Ln(5);
 
 // Observaciones
@@ -351,7 +352,7 @@ $pdf->SetAutoPageBreak(false);
 
 $pdf->SetFont('Arial', 'B', 11);
 $pdf->SetTextColor(26, 32, 53);
-$pdf->Cell(80, 7, t('ELABOR' . u(211) . ' POR'), 0, 1, 'L');
+$pdf->Cell(80, 7, t('ATENTAMENTE, ' . $empresa['nombre']), 0, 1, 'L');
 $pdf->SetTextColor(0, 0, 0);
 $pdf->Ln(18);
 $pdf->SetDrawColor(80, 80, 80);
@@ -360,9 +361,9 @@ $pdf->Line(15, $pdf->GetY(), 95, $pdf->GetY());
 $pdf->Ln(1);
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(80, 6, t($empresa['nombre']), 0, 1, 'L');
-$pdf->SetFont('Arial', 'I', 8);
-$pdf->SetTextColor(120, 120, 120);
-$pdf->Cell(80, 5, t('T' . u(233) . 'cnico / Empresa'), 0, 1, 'L');
+$pdf->SetFont('Arial', '', 9);
+$pdf->SetTextColor(80, 80, 80);
+$pdf->Cell(80, 5, t('NIT ' . $empresa['nit']), 0, 1, 'L');
 $pdf->SetTextColor(0, 0, 0);
 
 $pdf->SetAutoPageBreak(true, 20);
