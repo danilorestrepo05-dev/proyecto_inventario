@@ -327,7 +327,7 @@ $pdf->SetTextColor(0, 0, 0);
 
 // Total en letras
 $pdf->SetFont('Arial', 'I', 10);
-$pdf->Cell(190, 6, t(numero_a_letras($total_final) . ' PESOS M/CTE'), 0, 1, 'R');
+$pdf->Cell(190, 6, t(numero_a_letras($total_final) . ' PESOS COP'), 0, 1, 'R');
 $pdf->Ln(5);
 
 // Observaciones
@@ -352,13 +352,9 @@ $pdf->SetAutoPageBreak(false);
 
 $pdf->SetFont('Arial', 'B', 11);
 $pdf->SetTextColor(26, 32, 53);
-$pdf->Cell(80, 7, t('ATENTAMENTE, ' . $empresa['nombre']), 0, 1, 'L');
+$pdf->Cell(80, 7, t('ATENTAMENTE,'), 0, 1, 'L');
 $pdf->SetTextColor(0, 0, 0);
-$pdf->Ln(18);
-$pdf->SetDrawColor(80, 80, 80);
-$pdf->SetLineWidth(0.3);
-$pdf->Line(15, $pdf->GetY(), 95, $pdf->GetY());
-$pdf->Ln(1);
+$pdf->Ln(3);
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(80, 6, t($empresa['nombre']), 0, 1, 'L');
 $pdf->SetFont('Arial', '', 9);
