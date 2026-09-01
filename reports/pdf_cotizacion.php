@@ -109,7 +109,19 @@ function t($str) {
 
 // Captura datos del formulario de cotización
 $cliente_nombre = trim($_POST['cliente_nombre'] ?? '');
+$cliente_tipo_identificacion = $_POST['cliente_tipo_identificacion'] ?? 'cc';
 $cliente_identificacion = trim($_POST['cliente_identificacion'] ?? '');
+
+// Etiquetas legibles del tipo de documento del cliente
+$tipos_identificacion = [
+    'cc' => 'C.C.',
+    'nit' => 'NIT',
+    'ti' => 'T.I.',
+    'ce' => 'C.E.',
+    'pa' => 'Pasaporte',
+    'otro' => 'ID',
+];
+$ident_nombre = $tipos_identificacion[$cliente_tipo_identificacion] ?? 'ID';
 $elaborado_por = trim($_POST['elaborado_por'] ?? '');
 $dispositivo = trim($_POST['dispositivo'] ?? '');
 $marca = trim($_POST['marca'] ?? '');
@@ -239,7 +251,7 @@ $pdf->SetFont('Arial', '', 11);
 $pdf->Cell(0, 6, t($cliente_nombre), 0, 1, 'L');
 if (!empty($cliente_identificacion)) {
     $pdf->SetFont('Arial', '', 10);
-    $pdf->Cell(0, 6, t('NIT/CC: ' . $cliente_identificacion), 0, 1, 'L');
+    $pdf->Cell(0, 6, t($ident_nombre . ': ' . $cliente_identificacion), 0, 1, 'L');
 }
 $pdf->Ln(2);
 

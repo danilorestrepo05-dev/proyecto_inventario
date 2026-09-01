@@ -42,9 +42,22 @@ $elaborado_por = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_complet
                         <label class="form-label">Nombre del Cliente *</label>
                         <input type="text" class="form-control" name="cliente_nombre" placeholder="Ej: Juan P&eacute;rez o Empresa XYZ" required>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">NIT / CC</label>
-                        <input type="text" class="form-control" name="cliente_identificacion" placeholder="Ej: 1041149861-6 (opcional)">
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Tipo de Documento</label>
+                        <select name="cliente_tipo_identificacion" class="form-select">
+                            <option value="cc" selected>C&eacute;dula de Ciudadan&iacute;a (CC)</option>
+                            <option value="nit">NIT</option>
+                            <option value="ti">Tarjeta de Identidad (TI)</option>
+                            <option value="ce">C&eacute;dula de Extranjer&iacute;a (CE)</option>
+                            <option value="pa">Pasaporte</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">N&uacute;mero</label>
+                        <input type="text" class="form-control" name="cliente_identificacion" placeholder="Op. Ej: 1041149861-6">
                     </div>
                 </div>
                 <div class="mb-4">
