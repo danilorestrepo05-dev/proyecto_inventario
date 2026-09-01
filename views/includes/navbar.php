@@ -94,7 +94,7 @@ $nombre_nav = isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo']
             </li>
             <li>
               <a class="dropdown-item" href="<?php echo $nav_base; ?>/views/bitacora_comandos.php">
-                <i class="bi bi-command me-1"></i> Comandos
+                <i class="bi bi-command me-1"></i> Herramientas
               </a>
             </li>
             <li><hr class="dropdown-divider"></li>

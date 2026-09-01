@@ -174,7 +174,7 @@ $rol = $_SESSION['rol'];
                         <div class="card-icon card-icon-indigo">
                             <i class="bi bi-command"></i>
                         </div>
-                        <h6 class="card-title mt-3">Comandos</h6>
+                        <h6 class="card-title mt-3">Herramientas</h6>
                     </div>
                 </div>
             </a>

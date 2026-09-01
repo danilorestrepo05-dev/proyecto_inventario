@@ -19,6 +19,7 @@ $accion = $_POST['accion'] ?? 'crear';
 $comando = trim($_POST['comando']);
 $sistema_operativo = trim($_POST['sistema_operativo']);
 $descripcion = trim($_POST['descripcion']);
+$enlace = trim($_POST['enlace'] ?? '');
 $categoria = $_POST['categoria'];
 
 // Lista blanca de categorías válidas para prevenir datos no autorizados
@@ -37,19 +38,26 @@ if (!in_array($categoria, $categorias_permitidas)) {
     exit();
 }
 
+// Validar el enlace opcional: si no viene vacío debe ser una URL válida
+if (!empty($enlace) && !filter_var($enlace, FILTER_VALIDATE_URL)) {
+    mysqli_close($conn);
+    echo "<script>alert('Error: El enlace no es una URL válida'); window.history.back();</script>";
+    exit();
+}
+
 // Si la acción es editar, actualizar el registro existente; de lo contrario, crear uno nuevo
 if ($accion === 'editar') {
     $id_comando = intval($_POST['id_comando']);
-    $sql = "UPDATE bitacora_conocimiento SET comando=?, sistema_operativo=?, descripcion=?, categoria=? WHERE ID_comando=?";
+    $sql = "UPDATE bitacora_conocimiento SET comando=?, sistema_operativo=?, descripcion=?, enlace=?, categoria=? WHERE ID_comando=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssi", $comando, $sistema_operativo, $descripcion, $categoria, $id_comando);
+    $stmt->bind_param("sssssi", $comando, $sistema_operativo, $descripcion, $enlace, $categoria, $id_comando);
     $mensaje = 'Comando actualizado correctamente';
     $registro_accion = 'editar';
     $registro_id = $id_comando;
 } else {
-    $sql = "INSERT INTO bitacora_conocimiento (comando, sistema_operativo, descripcion, categoria) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO bitacora_conocimiento (comando, sistema_operativo, descripcion, enlace, categoria) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssss", $comando, $sistema_operativo, $descripcion, $categoria);
+    $stmt->bind_param("sssss", $comando, $sistema_operativo, $descripcion, $enlace, $categoria);
     $mensaje = 'Comando registrado correctamente';
     $registro_accion = 'crear';
     $registro_id = 0;

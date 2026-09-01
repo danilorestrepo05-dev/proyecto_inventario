@@ -246,6 +246,7 @@ CREATE TABLE IF NOT EXISTS `bitacora_conocimiento` (
   `comando` varchar(255) NOT NULL,
   `sistema_operativo` varchar(50) NOT NULL,
   `descripcion` text NOT NULL,
+  `enlace` varchar(500) DEFAULT NULL,
   `categoria` enum('optimizacion','redes','limpieza','diagnostico','atajo') NOT NULL,
   PRIMARY KEY (`ID_comando`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

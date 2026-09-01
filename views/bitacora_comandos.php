@@ -89,7 +89,7 @@ setTimeout(function() {
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../assets/css/estilos.css">
-    <title>Comandos</title>
+    <title>Herramientas</title>
     <link rel="icon" type="image/png" href="../assets/img/compumasterldlogo.png">
 </head>
 <body class="custom-body">
@@ -99,7 +99,7 @@ setTimeout(function() {
 
 <div class="container my-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch mb-3">
-        <h2 class="mb-3 mb-md-0"><i class="bi bi-command me-2"></i>Comandos</h2>
+        <h2 class="mb-3 mb-md-0"><i class="bi bi-command me-2"></i>Herramientas</h2>
         <div class="d-flex flex-column flex-sm-row gap-2">
             <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#modalComando">
                 <i class="bi bi-plus-circle me-1"></i> Agregar Comando
@@ -164,6 +164,9 @@ setTimeout(function() {
                         echo "<td><span class='badge $badge'>$label</span></td>";
                         echo "<td class='td-opciones'>";
                             echo "<button class='btn btn-sm btn-outline-secondary' title='Copiar' onclick='copiarComando(this)' data-comando=\"" . htmlspecialchars($fila['comando']) . "\"><i class='bi bi-clipboard'></i></button> ";
+                            if (!empty($fila['enlace'])) {
+                                echo "<a href=\"" . htmlspecialchars($fila['enlace']) . "\" target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary' title='Abrir enlace'><i class='bi bi-box-arrow-up-right'></i></a> ";
+                            }
                             echo "<button class='btn btn-sm btn-warning' title='Editar' onclick='editarComando(" . $fila['ID_comando'] . ", " . json_encode($fila) . ")'><i class='bi bi-pencil'></i></button> ";
                             if ($rol === 'Admin') {
                                 echo "<a href='../controllers/eliminar_bitacora.php?id={$fila['ID_comando']}&csrf_token=" . csrf_token() . "' class='btn btn-sm btn-outline-danger' title='Eliminar' onclick=\"return confirm('¿Eliminar este comando?')\"><i class='bi bi-trash'></i></a>";
@@ -232,6 +235,10 @@ setTimeout(function() {
                         <textarea class="form-control" name="descripcion" id="campo_descripcion" rows="2" required></textarea>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Enlace (URL) <span class="text-muted fw-normal">(opcional)</span></label>  
+                        <input type="url" class="form-control" name="enlace" id="campo_enlace" placeholder="https://drive.google.com/...">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Categor&iacute;a *</label>
                         <select name="categoria" id="campo_categoria" class="form-select" required>
                             <option value="optimizacion">Optimización</option>
@@ -278,6 +285,7 @@ function editarComando(id, data) {
     document.getElementById('campo_comando').value = data.comando;
     document.getElementById('campo_so').value = data.sistema_operativo;
     document.getElementById('campo_descripcion').value = data.descripcion;
+    document.getElementById('campo_enlace').value = data.enlace || '';
     document.getElementById('campo_categoria').value = data.categoria;
     document.getElementById('tituloModal').innerHTML = '<i class="bi bi-command me-1"></i> Editar Comando';
     var modal = new bootstrap.Modal(document.getElementById('modalComando'));
@@ -291,6 +299,7 @@ document.getElementById('modalComando').addEventListener('hidden.bs.modal', func
     document.getElementById('campo_comando').value = '';
     document.getElementById('campo_so').value = '';
     document.getElementById('campo_descripcion').value = '';
+    document.getElementById('campo_enlace').value = '';
     document.getElementById('campo_categoria').value = 'optimizacion';
     document.getElementById('tituloModal').innerHTML = '<i class="bi bi-command me-1"></i> Agregar Comando';
 });
