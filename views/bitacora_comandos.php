@@ -19,8 +19,9 @@ if (isset($_GET['mensaje'])) {
     ";
 }
 
-// Filtro por categoría desde URL
+// Filtro por categoría y búsqueda desde URL
 $filtro_categoria = isset($_GET['categoria']) ? $_GET['categoria'] : '';
+$busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 
 // Consulta base con condición WHERE siempre verdadera para facilitar filtros dinámicos
 $sql_base = "SELECT * FROM bitacora_conocimiento WHERE 1=1";
@@ -29,7 +30,12 @@ if (!empty($filtro_categoria)) {
     $sql_base .= " AND categoria = '" . mysqli_real_escape_string($conn, $filtro_categoria) . "'";
 }
 
-$sql_base .= " ORDER BY categoria, comando";
+if (!empty($busqueda)) {
+    $sql_busqueda = mysqli_real_escape_string($conn, $busqueda);
+    $sql_base .= " AND (comando LIKE '%$sql_busqueda%' OR descripcion LIKE '%$sql_busqueda%' OR sistema_operativo LIKE '%$sql_busqueda%')";
+}
+
+$sql_base .= " ORDER BY ID_comando DESC";
 $resultado = $conn->query($sql_base);
 
 // Paginación
@@ -45,6 +51,7 @@ $resultado_paginado = $conn->query($consulta_paginada);
 // Construye parámetros GET para preservar filtros en paginación
 $params_filtro = '';
 if (!empty($filtro_categoria)) $params_filtro .= "&categoria=" . urlencode($filtro_categoria);
+if (!empty($busqueda)) $params_filtro .= "&busqueda=" . urlencode($busqueda);
 
 // Colores de badge por categoría
 $categorias_badges = [
