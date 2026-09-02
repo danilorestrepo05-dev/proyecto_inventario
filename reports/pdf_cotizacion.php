@@ -357,7 +357,7 @@ if (!empty($observaciones)) {
 // =================== FIRMA (quien elabora) ===================
 $y_actual = $pdf->GetY();
 $espacio_disponible = $pdf->GetPageHeight() - $y_actual - 20;
-if ($espacio_disponible < 60) {
+if ($espacio_disponible < 26) {
     $pdf->AddPage();
 }
 $pdf->SetAutoPageBreak(false);
