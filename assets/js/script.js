@@ -31,11 +31,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// Al enfocar un campo numérico con valor "0", seleccionarlo para
-// poder escribir el precio directamente sin borrar el cero manualmente.
+// Al enfocar un campo numérico con valor "0", dejarlo vacío para poder
+// escribir el precio directamente sin borrar el cero manualmente.
+// No se usa select() porque los inputs type="number" de navegadores
+// modernos (Chrome) no soportan selección de texto (InvalidStateError).
 document.addEventListener("focusin", function (e) {
     const el = e.target;
-    if (el && el.matches && el.matches('input[type="number"]') && el.value === "0") {
-        el.select();
+    if (el && el.matches && el.matches('input[type="number"]') && el.value !== "" && parseFloat(el.value) === 0) {
+        el.value = "";
     }
 });
