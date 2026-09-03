@@ -260,7 +260,7 @@ if (window.location.search.includes('mensaje=')) {
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Mano de Obra ($)</label>
+                                <label class="form-label">Servicio ($)</label>
                                 <input type="number" class="form-control" name="mano_obra_costo" step="0.01" min="0" value="<?php echo $trabajo['mano_obra_costo']; ?>">
                             </div>
                             <div class="col-md-6">

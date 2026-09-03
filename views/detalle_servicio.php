@@ -169,7 +169,7 @@ if (window.location.search.includes('mensaje=')) {
                     <span><?php echo !empty($serv['cliente_correo']) ? htmlspecialchars($serv['cliente_correo']) : '<em>No registrado</em>'; ?></span>
                 </div>
                 <div class="col-md-2">
-                    <small class="text-muted fw-bold d-block">Mano de Obra</small>
+                    <small class="text-muted fw-bold d-block">Servicio</small>
                     <span class="fw-bold text-primary">$<?php echo number_format($serv['mano_obra_costo'] ?? 0, 0, ',', '.'); ?></span>
                 </div>
             </div>
@@ -204,9 +204,6 @@ if (window.location.search.includes('mensaje=')) {
         </form>
         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalCuentaCobro">
             <i class="bi bi-file-pdf me-1"></i> Cuenta de Cobro
-        </button>
-        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalManoObraTotal">
-            <i class="bi bi-cash-stack me-1"></i> Mano de Obra Total
         </button>
     </div>
 
@@ -268,7 +265,7 @@ if (window.location.search.includes('mensaje=')) {
                                     <th>Tipo Trabajo</th>
                                     <th>Problema</th>
                                     <th>Estado</th>
-                                    <th>Mano de Obra</th>
+                                    <th>Servicio</th>
                                     <th class="th-opciones">Opciones</th>
                                 </tr>
                             </thead>
@@ -500,35 +497,6 @@ if (window.location.search.includes('mensaje=')) {
     </div>
 </div>
 
-<!-- MODAL: Mano de Obra General -->
-<div class="modal fade" id="modalManoObraTotal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="formManoObraGeneral">
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="id_servicio" value="<?php echo $id_servicio; ?>">
-                <div class="modal-header" style="background: linear-gradient(135deg, #1a2035, #2d3a52); color: #fff;">
-                    <h5 class="modal-title"><i class="bi bi-cash-stack me-1"></i> Mano de Obra Total</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted mb-3">Costo de mano de obra <strong>total del servicio</strong> (una sola vez, no por equipo).</p>
-                    <div class="mb-3">
-                        <label class="form-label">Costo total ($)</label>
-                        <input type="number" class="form-control" name="costo" step="1" min="0" required placeholder="Ej: 50000" value="<?php echo intval($serv['mano_obra_costo'] ?? 0); ?>">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-dark rounded-pill">
-                        <i class="bi bi-check-circle me-1"></i> Aplicar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Scripts JavaScript: AJAX para CRUD y persistencia del acordeón -->
 <script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -704,39 +672,6 @@ function eliminarTrabajo(id) {
     })
     .catch(function() { alert('Error de conexi\u00f3n'); });
 }
-
-// AJAX: Mano de Obra General
-document.getElementById('formManoObraGeneral').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var form = this;
-    var btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Aplicando...';
-
-    fetch('../controllers/procesar_mano_obra_general.php', {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        body: new FormData(form)
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Aplicar';
-        if (data.ok) {
-            bootstrap.Modal.getInstance(form.closest('.modal')).hide();
-            form.reset();
-            mostrarAlerta(data.mensaje, 'success');
-            recargarEnMismoTab();
-        } else {
-            alert(data.mensaje);
-        }
-    })
-    .catch(function() {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Aplicar';
-        alert('Error de conexi\u00f3n');
-    });
-});
 
 // --- Persistir acordeón abierto (guarda en localStorage y restaura al recargar) ---
 (function(){

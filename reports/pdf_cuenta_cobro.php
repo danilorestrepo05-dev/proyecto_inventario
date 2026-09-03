@@ -502,7 +502,7 @@ if ($is_service_mode) {
     }
 
     if ($mano_obra > 0 && $mostrar_precios == 1) {
-        $linea_mo = $numero_item . '. Mano de obra:';
+        $linea_mo = $numero_item . '. Servicio:';
         verificar_cierre($pdf, 15);
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->MultiCell(0, 6, $linea_mo, 0, 'L');
@@ -550,7 +550,7 @@ if ($is_service_mode) {
     $pdf->Ln(1);
 
     if ($mano_obra > 0 && $mostrar_precios == 1) {
-        $linea_mo = $numero_item . '. Mano de obra:';
+        $linea_mo = $numero_item . '. Servicio:';
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->MultiCell(0, 6, $linea_mo, 0, 'L');
 
@@ -626,7 +626,7 @@ if ($mostrar_precios == 1) {
 
     $pdf->SetFont('Arial', '', 10);
     if ($mano_obra > 0) {
-        $pdf->Cell(0, 6, 'Mano de obra: $' . number_format($mano_obra, 0, ',', '.'), 0, 1, 'R');
+        $pdf->Cell(0, 6, 'Servicio: $' . number_format($mano_obra, 0, ',', '.'), 0, 1, 'R');
     }
     if ($total_repuestos > 0) {
         $pdf->Cell(0, 6, 'Repuestos: $' . number_format($total_repuestos, 0, ',', '.'), 0, 1, 'R');
