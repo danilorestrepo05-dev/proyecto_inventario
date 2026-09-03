@@ -766,6 +766,15 @@ document.getElementById('formManoObraGeneral').addEventListener('submit', functi
         }
     }
 })();
+
+// Al enfocar un campo numérico con valor "0", seleccionarlo para poder
+// escribir el precio directamente sin borrar el cero manualmente.
+document.addEventListener('focusin', function(e) {
+    var el = e.target;
+    if (el && el.matches && el.matches('input[type="number"]') && el.value === '0') {
+        el.select();
+    }
+});
 </script>
 </body>
 </html>

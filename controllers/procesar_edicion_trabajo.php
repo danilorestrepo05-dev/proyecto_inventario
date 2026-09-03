@@ -122,6 +122,26 @@ if ($stmt->execute()) {
     $stmt_serv->close();
     $id_servicio = $row_serv['ID_servicio'];
 
+    // Recalcular el total de mano de obra del servicio sumando el de todos sus trabajos
+    $sql_sum_mo = "SELECT COALESCE(SUM(t.mano_obra_costo), 0) AS total_mo
+                   FROM trabajo t
+                   INNER JOIN dispositivo_servicio ds ON ds.ID_dispositivo = t.ID_dispositivo
+                   WHERE ds.ID_servicio = ?";
+    $stmt_sum = $conn->prepare($sql_sum_mo);
+    $stmt_sum->bind_param("i", $id_servicio);
+    $stmt_sum->execute();
+    $res_sum = $stmt_sum->get_result();
+    $fila_sum = $res_sum->fetch_assoc();
+    $stmt_sum->close();
+    $total_mano_obra = floatval($fila_sum['total_mo']);
+
+    // Sincronizar el valor total en el servicio para que el PDF y los resúmenes lo reflejen
+    $sql_upd_mo = "UPDATE servicio SET mano_obra_costo = ? WHERE ID_servicio = ?";
+    $stmt_upd = $conn->prepare($sql_upd_mo);
+    $stmt_upd->bind_param("di", $total_mano_obra, $id_servicio);
+    $stmt_upd->execute();
+    $stmt_upd->close();
+
     registrar_cambio($conn, 'servicio', 'editar', $id_servicio, 'Trabajo #' . $id_trabajo . ' actualizado - Estado: ' . $estado . ' - Diagnóstico: ' . substr($diagnostico, 0, 60));
     $stmt->close();
     mysqli_close($conn);

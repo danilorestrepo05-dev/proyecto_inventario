@@ -628,7 +628,9 @@ if ($mostrar_precios == 1) {
     if ($mano_obra > 0) {
         $pdf->Cell(0, 6, 'Mano de obra: $' . number_format($mano_obra, 0, ',', '.'), 0, 1, 'R');
     }
-    $pdf->Cell(0, 6, 'Repuestos: $' . number_format($total_repuestos, 0, ',', '.'), 0, 1, 'R');
+    if ($total_repuestos > 0) {
+        $pdf->Cell(0, 6, 'Repuestos: $' . number_format($total_repuestos, 0, ',', '.'), 0, 1, 'R');
+    }
     if ($total_programas > 0) {
         $pdf->Cell(0, 6, 'Programas: $' . number_format($total_programas, 0, ',', '.'), 0, 1, 'R');
     }
