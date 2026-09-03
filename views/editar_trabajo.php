@@ -107,6 +107,11 @@ setTimeout(function() {
     });
 }, 5000);
 
+// Variable global: marca un guardado exitoso del trabajo. Se captura ANTES de
+// limpiar el parámetro 'mensaje' de la URL, para que el DOMContentLoaded sepa
+// que debe limpiar el borrador y no restaurar valores viejos de estado/garantía.
+var huboGuardado = window.location.search.includes('mensaje=Trabajo');
+
 if (window.location.search.includes('mensaje=')) {
     var params = new URLSearchParams(window.location.search);
     params.delete('mensaje');
@@ -1068,8 +1073,10 @@ function mostrarAlerta(msg, tipo) {
 
 // Al cargar, restaurar la pestaña activa desde el hash de la URL
 document.addEventListener('DOMContentLoaded', function() {
-    // Si se guardaron los cambios del trabajo, limpiar el borrador de la información
-    if (window.location.search.includes('mensaje=Trabajo actualizado')) {
+    // Si se guardaron los cambios del trabajo, limpiar el borrador de la información.
+    // Se usa la variable global 'huboGuardado' (capturada antes de limpiar 'mensaje' de la URL)
+    // porque el script superior ya hizo history.replaceState y 'mensaje' ya no está en la URL.
+    if (huboGuardado) {
         limpiarBorradorInfo();
     } else {
         restaurarBorradorInfo();
